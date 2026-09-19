@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bible Memory Verses for Kids | Bible Buddies</title>
+  <meta name="description" content="Learn Bible memory verses with fun practice games and read-aloud.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4CB4E7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html" aria-label="Bible Buddies home">
+        <img class="logo-img" src="images/logo.png" alt="Bible Buddies, Learn, Play, Discover Jesus" width="460" height="340">
+      </a>
+      <nav class="main-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="stories.html">Stories</a></li>
+          <li><a href="games.html">Games</a></li>
+          <li><a href="colouring.html">Colour &amp; Create</a></li>
+          <li><a href="explorer.html">Bible Explorer</a></li>
+          <li><a href="memory-verses.html" aria-current="page">Memory Verses</a></li>
+          <li><a href="meet-jesus.html">Meet Jesus</a></li>
+          <li><a href="teachers.html">Teacher Corner</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+      </nav>
+      <div class="header-tools">
+        <span class="star-counter" title="Your stars">⭐ <span data-star-count>0</span></span>
+        <button class="icon-btn" data-open-search aria-label="Search">🔍</button>
+        <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+  <div class="nav-backdrop"></div>
+  <main id="main">
+    <section class="section center" style="background:var(--sun-deep);color:#fff">
+      <div class="container">
+        <div class="page-buddy"><svg class="buddy-svg" viewBox="0 0 120 120" role="img" aria-label="Buddy the Sheep">
+  <ellipse cx="60" cy="105" rx="34" ry="7" fill="rgba(0,0,0,.12)"/>
+  <circle cx="42" cy="60" r="16" fill="#fff" stroke="#41383B" stroke-width="3"/>
+  <circle cx="78" cy="60" r="16" fill="#fff" stroke="#41383B" stroke-width="3"/>
+  <circle cx="60" cy="48" r="18" fill="#fff" stroke="#41383B" stroke-width="3"/>
+  <ellipse cx="60" cy="70" rx="30" ry="26" fill="#fff" stroke="#41383B" stroke-width="3"/>
+  <ellipse cx="60" cy="74" rx="20" ry="18" fill="#4b4043"/>
+  <circle cx="53" cy="70" r="4" fill="#fff"/><circle cx="67" cy="70" r="4" fill="#fff"/>
+  <circle cx="53" cy="71" r="2" fill="#1c1618"/><circle cx="67" cy="71" r="2" fill="#1c1618"/>
+  <path d="M55 80 q5 5 10 0" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="40" cy="78" rx="6" ry="9" fill="#4b4043"/><ellipse cx="80" cy="78" rx="6" ry="9" fill="#4b4043"/>
+  <rect x="48" y="96" width="6" height="14" rx="3" fill="#4b4043"/>
+  <rect x="66" y="96" width="6" height="14" rx="3" fill="#4b4043"/>
+</svg></div>
+        <div style="font-size:2.1rem">⭐</div>
+        <h1 style="color:#fff">Memory Verses</h1>
+        <p style="font-size:1.2rem;max-width:44ch;margin:.4rem auto 0">Learn God's Word one verse at a time.</p>
+      </div>
+    </section>
+    <section class="section"><div class="container" style="max-width:640px">
+      <div class="verse-scroll reveal" data-daily-verse>
+        <p class="verse-text" data-v-text>“…”</p>
+        <p class="verse-ref" data-v-ref>…</p>
+        <p data-v-explain style="color:var(--ink-soft)"></p>
+        <div class="btn-row">
+          <button class="btn btn-primary" data-v-hide>Hide words</button>
+          <button class="btn btn-sky" data-v-speak>🔊 Listen</button>
+          <button class="btn btn-ghost" data-v-next>Next verse</button>
+        </div>
+      </div>
+    </div></section>
+    <section class="section" style="background:var(--cloud)"><div class="container">
+      <div class="section-head"><h2>All memory verses</h2></div>
+      <div class="grid grid-2" data-verse-list></div>
+    </div></section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo-title">✝️ Bible Buddies</div>
+          <p>Learn • Play • Discover Jesus</p>
+          <p style="margin-top:.6rem;opacity:.85">🐑 Created to help children discover the Bible and learn about Jesus.</p>
+        </div>
+        <div class="footer-links"><strong>Explore</strong>
+          <a href="stories.html">Stories</a><a href="games.html">Games</a>
+          <a href="colouring.html">Colouring</a><a href="explorer.html">Bible Explorer</a>
+          <a href="memory-verses.html">Memory Verses</a>
+        </div>
+        <div class="footer-links"><strong>More</strong>
+          <a href="meet-jesus.html">Meet Jesus</a><a href="teachers.html">Teacher Corner</a>
+          <a href="about.html">About</a><a href="contact.html">Contact</a>
+        </div>
+      </div>
+      <div class="footer-bottom">© <span id="year"></span> Bible Buddies · Made with love for young explorers </div>
+    </div>
+  </footer>
+
+  <div class="modal" id="search-modal" role="dialog" aria-modal="true" aria-label="Search Bible Buddies">
+    <div class="modal-box">
+      <button class="modal-close" aria-label="Close search">✕</button>
+      <h2>🔍 Search</h2>
+      <input type="search" class="search-input" placeholder="Search stories, characters, verses…" aria-label="Search">
+      <div class="search-results"></div>
+    </div>
+  </div>
+  <script src="js/data.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+  (function(){
+    const list=document.querySelector("[data-verse-list]");
+    if(list) list.innerHTML = VERSES.map(v=>`
+      <div class="card reveal"><p style="font-family:var(--font-head);font-size:1.15rem;color:var(--grape-deep)">“${v.text}”</p>
+      <p style="font-weight:800">${v.ref}</p><p style="color:var(--ink-soft)">${v.explain}</p>
+      <button class="btn btn-sky" onclick="speakText('${v.text.replace(/'/g,"")} ${v.ref}')">🔊 Listen</button></div>`).join("");
+    document.querySelectorAll(".reveal").forEach(r=>r.classList.add("in"));
+  })();
+  </script>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

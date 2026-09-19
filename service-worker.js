@@ -1,0 +1,25 @@
+/* Bible Buddies — offline support.
+   Bump CACHE_VERSION whenever you change site files, so browsers refresh. */
+const CACHE_VERSION = "bible-buddies-v2";
+const ASSETS = [
+  "index.html", "stories.html", "comics.html", "games.html", "colouring.html",
+  "explorer.html", "memory-verses.html", "meet-jesus.html", "teachers.html",
+  "about.html", "contact.html", "404.html",
+  "css/style.css", "js/data.js", "js/app.js", "js/progress.js", "js/games.js", "js/quiz.js",
+  "manifest.json", "images/logo.png", "images/icon-192.png", "images/icon-512.png"
+];
+
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(CACHE_VERSION).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+});
+self.addEventListener("activate", e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)))
+  ).then(() => self.clients.claim()));
+});
+self.addEventListener("fetch", e => {
+  if (e.request.method !== "GET") return;
+  e.respondWith(
+    caches.match(e.request).then(hit => hit || fetch(e.request).catch(() => caches.match("404.html")))
+  );
+});

@@ -1,0 +1,13 @@
+{
+  "name": "Bible Buddies",
+  "short_name": "Bible Buddies",
+  "description": "Learn, play and discover Jesus — Bible stories, games and activities for kids.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#FFFDF7",
+  "theme_color": "#4CB4E7",
+  "icons": [
+    { "src": "images/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
