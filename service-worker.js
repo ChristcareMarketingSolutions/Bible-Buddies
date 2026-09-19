@@ -1,6 +1,6 @@
 /* Bible Buddies — offline support.
    Bump CACHE_VERSION whenever you change site files, so browsers refresh. */
-const CACHE_VERSION = "bible-buddies-v2";
+const CACHE_VERSION = "bible-buddies-v3";
 const ASSETS = [
   "index.html", "stories.html", "comics.html", "games.html", "colouring.html",
   "explorer.html", "memory-verses.html", "meet-jesus.html", "teachers.html",

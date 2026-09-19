@@ -136,12 +136,15 @@ ul { list-style: none; }
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.6rem;
 
     /* Keep the blue header at a controlled height */
     min-height: 110px;
 
     padding: 0.7rem 0;
 }
+/* The header gets a little more room than page content so the nav fits */
+.site-header .container { width: min(100% - 2rem, 1320px); }
 
 /* Logo is independent from the header layout */
 .logo {
@@ -161,8 +164,8 @@ ul { list-style: none; }
 .logo-img {
     display: block;
 
-    /* Make logo bigger */
-    width: 160px;
+    /* Make logo bigger (scales down on smaller screens, see section 16) */
+    width: var(--logo-w, 160px);
     height: auto;
 
     /* Keep original proportions */
@@ -171,19 +174,24 @@ ul { list-style: none; }
 
 /* Navigation must leave room for the larger logo */
 .main-nav {
-    margin-left: 210px;
+    margin-left: calc(var(--logo-w, 160px) + 50px);
+    min-width: 0;
 }
 
-.main-nav ul { display: flex; gap: 0.35rem; align-items: center; }
+.main-nav ul { display: flex; gap: 0.25rem; align-items: center; }
 .main-nav a {
   display: inline-block; white-space: nowrap;
-  color: var(--white); font-family: var(--font-head); font-weight: 500; font-size: 0.98rem;
-  padding: 0.45rem 0.7rem; border-radius: var(--radius-pill);
+  color: var(--white); font-family: var(--font-head); font-weight: 500; font-size: 0.92rem;
+  padding: 0.45rem 0.6rem; border-radius: var(--radius-pill);
   transition: background var(--t-fast);
 }
 .main-nav a:hover, .main-nav a[aria-current="page"] { background: rgba(255,255,255,0.22); }
+@media (min-width: 1360px) {
+  .main-nav ul { gap: 0.35rem; }
+  .main-nav a { font-size: 0.98rem; padding: 0.45rem 0.7rem; }
+}
 
-.header-tools { display: flex; align-items: center; gap: 0.5rem; }
+.header-tools { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; flex: none; }
 .star-counter {
   display: inline-flex; align-items: center; gap: 0.3rem;
   background: var(--sun); color: var(--ink); font-family: var(--font-head);
@@ -200,15 +208,20 @@ ul { list-style: none; }
 
 .nav-toggle { display: none; }
 
-/* Mobile nav */
-@media (max-width: 900px) {
+/* Mobile / tablet nav: slide-in drawer (9 links need a wide bar, so this
+   kicks in below laptop widths, not just on phones) */
+@media (max-width: 1200px) {
   .main-nav {
-    position: fixed; inset: 0 0 0 auto; width: min(80vw, 320px);
+    position: fixed; inset: 0 0 0 auto; width: min(80vw, 340px); height: 100vh; height: 100dvh;
+    margin-left: 0;
     background: var(--sky-deep); padding: 5rem 1.5rem 2rem;
-    transform: translateX(100%); transition: transform var(--t-med);
-    box-shadow: -8px 0 30px rgba(0,0,0,0.3); overflow-y: auto;
+    transform: translateX(100%); overflow-y: auto; visibility: hidden;
+    transition: transform var(--t-med), box-shadow var(--t-med), visibility 0s linear var(--t-med);
   }
-  .main-nav.open { transform: translateX(0); }
+  .main-nav.open {
+    transform: translateX(0); box-shadow: -8px 0 30px rgba(0,0,0,0.3); visibility: visible;
+    transition: transform var(--t-med), box-shadow var(--t-med), visibility 0s;
+  }
   .main-nav ul { flex-direction: column; gap: 0.4rem; align-items: stretch; }
   .main-nav a { font-size: 1.25rem; padding: 0.8rem 1rem; }
   .nav-toggle {
@@ -246,7 +259,7 @@ ul { list-style: none; }
 .buddy-hello { display: flex; align-items: flex-end; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; }
 .speech-bubble {
   position: relative; background: var(--white); border: var(--border);
-  border-radius: var(--radius); padding: 0.8rem 1.1rem; max-width: 260px;
+  border-radius: var(--radius); padding: 0.8rem 1.1rem; max-width: min(260px, 100%);
   font-weight: 700; box-shadow: var(--shadow-soft); margin-bottom: 2rem;
 }
 .speech-bubble::after {
@@ -277,20 +290,10 @@ ul { list-style: none; }
     width: 100%;
 }
 
-.grid-2 .card {
-    flex: 0 0 320px;
-    width: 320px;
-}
-
-.grid-3 .card {
-    flex: 0 0 280px;
-    width: 280px;
-}
-
-.grid-4 .card {
-    flex: 0 0 240px;
-    width: 240px;
-}
+/* Cards share the row and wrap; on narrow screens each takes the full width */
+.grid-2 .card { flex: 1 1 min(100%, 320px); max-width: 480px; }
+.grid-3 .card { flex: 1 1 min(100%, 260px); max-width: 360px; }
+.grid-4 .card { flex: 1 1 min(100%, 200px); max-width: 280px; }
 .card {
   background: var(--white); border: var(--border); border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card); padding: 1.4rem; position: relative;
@@ -537,11 +540,129 @@ ul { list-style: none; }
   .reveal { opacity: 1; transform: none; }
 }
 
-/* ---------- 16. RESPONSIVE TWEAKS ---------- */
-@media (max-width: 560px) {
-  .memory-grid { grid-template-columns: repeat(3, 1fr); }
+/* ---------- 16. RESPONSIVE TWEAKS ----------
+   Breakpoints (mobile-first thinking, written as max-width overrides):
+     desktop  > 1200px   full nav bar
+     laptop/tablet  <= 1200px   drawer nav
+     tablet   <= 900px
+     phone    <= 600px
+     small phone <= 380px
+   ---------------------------------------------------------------- */
+
+/* Never let anything push the page sideways */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-wrap: break-word; }
+img, video, canvas { max-width: 100%; }
+.map-line { font-size: clamp(1.15rem, 3.6vw, 1.6rem); line-height: 2; }
+.toast { max-width: calc(100vw - 2rem); text-align: center; }
+
+/* Big screens: a little more breathing room */
+@media (min-width: 1400px) {
+  :root { --maxw: 1240px; }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  :root { --logo-w: 130px; }
+  .header-inner { min-height: 92px; }
+  .section { padding: 2.6rem 0; }
+  .hero { padding-top: 2rem; }
+  .band { padding: 2rem 1.5rem; }
+  .verse-scroll { padding: 1.6rem 2rem; }
+  .game-stage { padding: 1.3rem; }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); }
+  .footer-brand { grid-column: 1 / -1; }
+}
+
+/* Phone */
+@media (max-width: 600px) {
+  :root { --fs-body: 1.05rem; --logo-w: 100px; --radius-lg: 26px; }
+  .container { width: min(100% - 1.5rem, var(--maxw)); }
+  .site-header .container { width: min(100% - 1.5rem, 1320px); }
+  .header-inner { min-height: 78px; padding: 0.5rem 0; }
+  .star-counter { padding: 0.25rem 0.6rem; font-size: 0.95rem; }
+  .icon-btn { width: 42px; height: 42px; }
+  .nav-toggle { width: 42px; height: 42px; }
+  .header-tools { gap: 0.35rem; }
   .header-tools .star-counter span.label { display: none; }
-  .section { padding: 2.2rem 0; }
+
+  .section { padding: 2rem 0; }
+  .section-head { margin-bottom: 1.3rem; }
+
+  /* hero: stack Buddy above his speech bubble */
+  .hero .lead { font-size: 1.1rem; }
+  .hero-btns .btn { flex: 1 1 100%; justify-content: center; }
+  .buddy-hello { flex-direction: column; align-items: center; margin-top: 1rem; }
+  .buddy-hello .buddy-svg { width: 130px !important; }
+  .speech-bubble { margin-bottom: 1.2rem; text-align: center; }
+  .speech-bubble::after { left: 50%; bottom: auto; top: -20px; margin-left: -10px; border-top-color: transparent; border-bottom-color: var(--ink); }
+  .hero-clouds span { font-size: 1.8rem !important; }
+
+  /* cards, bands, scrolls */
+  .card { padding: 1.1rem; }
+  .world-card .card-top { margin: -1.1rem -1.1rem 0.9rem; padding: 1.2rem; font-size: 2.6rem; }
+  .featured { padding: 1.2rem; }
+  .band { padding: 1.6rem 1.1rem; }
+  .verse-scroll { padding: 1.3rem 1.2rem; }
+  .verse-scroll .verse-text { font-size: 1.25rem; }
+  .btn-lg { font-size: 1.1rem; padding: 0.8rem 1.4rem; }
+  .featured .btn-row .btn, .verse-scroll .btn-row .btn { flex: 1 1 auto; justify-content: center; }
+  .filter-btn { padding: 0.4rem 0.8rem; font-size: 0.95rem; }
+
+  /* games */
+  .game-stage { padding: 1rem; }
+  .game-hud { gap: 0.5rem; font-size: 0.95rem; }
+  .game-hud span { padding: 0.25rem 0.7rem; }
+  .memory-grid { gap: 0.4rem; }
+  .mem-face { font-size: clamp(0.72rem, 3.6vw, 1.3rem); border-width: 2px; border-radius: 14px; padding: 2px; }
+  .mem-front::after { font-size: 1.3rem; }
+  .q-clue { font-size: 1.08rem; padding: 1rem; }
+  .q-options { grid-template-columns: 1fr; }
+  .scramble-word { font-size: clamp(1.6rem, 9vw, 2.6rem); letter-spacing: 0.2rem; }
+  .harp { gap: 0.3rem; padding: 0.8rem 0.6rem 1rem; }
+  .chat-window { max-height: 300px; }
+  .chat-msg { max-width: 92%; }
+  .chat-input-row { flex-wrap: wrap; }
+  .chat-input-row .btn { flex: 1 1 100%; justify-content: center; }
+  .game-hud label input[type="range"] { max-width: 120px; }
+
+  /* search + forms */
+  .modal { padding: 0.6rem; }
+  .modal-box { margin: 2vh auto; padding: 1.1rem; }
+
+  /* footer */
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .footer-bottom { font-size: 0.85rem; }
+  .toast { bottom: 14px; }
+  .buddy-dance { width: 100px; }
+}
+
+/* Very small phones (e.g. iPhone SE / 320px) */
+@media (max-width: 380px) {
+  :root { --logo-w: 84px; }
+  .btn { white-space: normal; }
+  h1 { font-size: 1.9rem; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .star-counter { font-size: 0.9rem; padding: 0.2rem 0.5rem; }
+}
+
+/* Short landscape phones: keep the drawer usable and the header slim */
+@media (max-height: 480px) and (orientation: landscape) {
+  .header-inner { min-height: 64px; }
+  :root { --logo-w: 84px; }
+  .main-nav { padding-top: 4rem; }
+  .main-nav a { padding: 0.5rem 1rem; font-size: 1.1rem; }
+}
+
+/* Touch devices: hover lift feels sticky, and tap targets should be roomy */
+@media (hover: none) {
+  .card:hover, .btn:hover, .q-option:hover, .icon-btn:hover { transform: none; }
+  .btn { min-height: 44px; }
+}
+
+/* Printing (colouring pages): hide chrome */
+@media print {
+  .site-header, .site-footer, .nav-backdrop, .toast, .modal { display: none !important; }
 }
 
 /* ============================================================
@@ -552,7 +673,7 @@ ul { list-style: none; }
 
 /* Center any leftover cards in the home "Choose your adventure" grid */
 .adventure-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.4rem; }
-.adventure-grid > .card { flex: 0 1 320px; max-width: 340px; }
+.adventure-grid > .card { flex: 1 1 min(100%, 300px); max-width: 360px; }
 
 /* David's Sling game */
 .sling-canvas {
@@ -591,7 +712,7 @@ ul { list-style: none; }
 .chat-msg.me { align-self: flex-end; background: var(--sky); color: var(--white); border-bottom-right-radius: 4px; }
 .chat-msg .ref { display: block; margin-top: .35rem; font-family: var(--font-head); font-size: .82rem; color: var(--grape); }
 .chat-input-row { max-width: 620px; margin: .8rem auto 0; display: flex; gap: .5rem; }
-.chat-input-row .search-input { flex: 1; }
+.chat-input-row .search-input { flex: 1; min-width: 0; }
 .chat-chips { max-width: 620px; margin: .7rem auto 0; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
 .chat-chip {
   border: var(--border); background: var(--white); border-radius: var(--radius-pill);
