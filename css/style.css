@@ -733,3 +733,97 @@ img, video, canvas { max-width: 100%; }
 }
 .chat-chip:hover { background: var(--cloud); }
 .chat-safety { max-width: 620px; margin: .9rem auto 0; font-size: .9rem; text-align: center; color: var(--ink); opacity: .85; }
+
+/* ============================================================
+   JOURNEY WITH JESUS (journey.html): first-person 3D walk
+   ============================================================ */
+.jw-hero { background: linear-gradient(135deg, var(--grape), var(--sky-deep)); color: #fff; }
+.jw-section { padding-top: 2rem; }
+.jw-stage {
+  position: relative; height: clamp(460px, 76vh, 780px);
+  border: var(--border); border-radius: var(--radius-lg); overflow: hidden;
+  background: linear-gradient(#5DBDF2, #DDF2FF 65%, #9ED37F 66%);
+  box-shadow: var(--shadow-card); user-select: none; -webkit-user-select: none;
+}
+.jw-stage:fullscreen { height: 100%; border: none; border-radius: 0; }
+.jw-canvas { position: absolute; inset: 0; touch-action: none; cursor: grab; }
+.jw-canvas:active { cursor: grabbing; }
+.jw-canvas canvas { width: 100% !important; height: 100% !important; display: block; }
+.jw-canvas:focus-visible { outline: 4px solid var(--sun); outline-offset: -6px; }
+.jw-fade { position: absolute; inset: 0; background: #FFFDF7; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+.jw-fade.on { opacity: 1; }
+
+.jw-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; gap: .5rem; align-items: flex-start; pointer-events: none; }
+.jw-chip {
+  pointer-events: auto; background: rgba(255,255,255,.92); color: var(--ink);
+  border: 3px solid var(--ink); border-radius: var(--radius-pill);
+  padding: .35rem .9rem; font-family: var(--font-head); font-weight: 600; font-size: .95rem;
+  box-shadow: 0 3px 0 rgba(0,0,0,.15); cursor: pointer;
+}
+.jw-status { cursor: default; max-width: 70%; }
+.jw-reopen { position: absolute; left: 50%; transform: translateX(-50%); bottom: 132px; background: var(--sun); }
+.jw-hint {
+  position: absolute; left: 50%; top: 64px; transform: translateX(-50%);
+  background: rgba(65,56,59,.75); color: #fff; padding: .3rem .9rem; border-radius: var(--radius-pill);
+  font-weight: 700; font-size: .9rem; pointer-events: none; transition: opacity .6s;
+}
+.jw-hint.gone { opacity: 0; }
+
+/* the story box that appears at each stop */
+.jw-box {
+  position: absolute; top: 64px; right: 14px; width: min(430px, 46%); max-height: calc(100% - 200px);
+  display: flex; flex-direction: column;
+  background: var(--parchment); border: var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-card); opacity: 0; transform: translateY(14px) scale(.98);
+  transition: opacity .35s ease, transform .35s ease;
+}
+.jw-box.show { opacity: 1; transform: none; }
+.jw-box-body { overflow-y: auto; padding: 1.2rem 1.3rem 1.1rem; -webkit-overflow-scrolling: touch; user-select: text; -webkit-user-select: text; }
+.jw-box-body h2 { font-size: clamp(1.25rem, 2.6vw, 1.6rem); margin: .2rem 2rem .4rem 0; }
+.jw-box-body p { margin: 0 0 .7rem; font-size: 1rem; line-height: 1.55; }
+.jw-box-emoji { font-size: 2.2rem; line-height: 1; }
+.jw-ref { display: inline-block; background: #FFF3CC; color: var(--sun-deep); font-weight: 800; font-size: .9rem !important; padding: .15rem .7rem; border-radius: var(--radius-pill); }
+.jw-verse { background: #fff; border-left: 6px solid var(--sun); border-radius: 12px; padding: .7rem .9rem; font-style: italic; }
+.jw-verse span { display: block; font-style: normal; font-weight: 800; font-size: .85rem; color: var(--ink-soft); margin-top: .3rem; }
+.jw-tip { color: var(--ink-soft); font-size: .95rem !important; }
+.jw-box-btns { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .4rem; }
+.jw-close {
+  position: absolute; top: 8px; right: 8px; width: 38px; height: 38px; border-radius: 50%;
+  border: 3px solid var(--ink); background: #fff; font-size: 1rem; cursor: pointer; z-index: 1;
+}
+
+/* bottom bar: progress road + Back / Forward */
+.jw-bottom {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: .7rem 1rem .9rem;
+  background: linear-gradient(transparent, rgba(65,56,59,.55));
+}
+.jw-track { position: relative; height: 34px; margin: 0 22px .5rem; }
+.jw-line { position: absolute; left: 0; right: 0; top: 15px; height: 6px; border-radius: 6px; background: repeating-linear-gradient(90deg, #EBD3A0 0 14px, #C9A86A 14px 22px); border: 2px solid var(--ink); }
+.jw-dot {
+  position: absolute; top: 2px; width: 32px; height: 32px; transform: translateX(-50%);
+  border-radius: 50%; border: 3px solid var(--ink); background: #fff; cursor: pointer;
+  font-family: var(--font-head); font-weight: 700; font-size: .85rem; color: var(--ink);
+}
+.jw-dot.done { background: var(--sun); }
+.jw-dot.current { background: var(--meadow); color: #fff; transform: translateX(-50%) scale(1.15); }
+.jw-walker { position: absolute; top: -20px; transform: translateX(-50%) scaleX(-1); font-size: 1.5rem; pointer-events: none; transition: left .1s linear; }
+.jw-controls { display: flex; justify-content: center; gap: .7rem; }
+.jw-controls .btn[disabled] { opacity: .5; cursor: not-allowed; }
+.jw-controls .btn-lg { min-width: 12rem; justify-content: center; }
+
+.jw-fallback { padding: 1rem; display: grid; gap: 1rem; overflow-y: auto; height: 100%; background: var(--cream); }
+.jw-stage.no3d { height: auto; max-height: none; }
+
+/* phones: story box sits at the bottom, above the controls */
+@media (max-width: 700px) {
+  .jw-stage { height: clamp(520px, 80vh, 720px); border-radius: var(--radius); }
+  .jw-box { top: auto; left: 10px; right: 10px; width: auto; bottom: 128px; max-height: calc(100% - 200px); }
+  .jw-status { font-size: .85rem; }
+  .jw-hint { top: auto; bottom: 150px; white-space: nowrap; font-size: .8rem; }
+  .jw-top .jw-chip { padding: .3rem .7rem; }
+  .jw-controls .btn-lg { min-width: 0; flex: 1; }
+  .jw-reopen { bottom: 128px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jw-box, .jw-fade, .jw-walker { transition: none; }
+}

@@ -247,6 +247,7 @@ function buildSearchIndex() {
   CHARACTERS.forEach(c => idx.push({ icon: "👤", title: c.name, kind: "Bible Character", url: "explorer.html", key: (c.name + " " + c.who).toLowerCase() }));
   PLACES.forEach(p => idx.push({ icon: "🗺️", title: p.name, kind: "Bible Place", url: "explorer.html", key: (p.name + " " + p.note).toLowerCase() }));
   VERSES.forEach(v => idx.push({ icon: "⭐", title: v.ref, kind: "Memory Verse", url: "memory-verses.html", key: (v.ref + " " + v.text).toLowerCase() }));
+  idx.push({ icon: "🚶", title: "Journey with Jesus", kind: "3D Walk", url: "journey.html", key: "journey with jesus walk 3d map bethlehem jordan river baptism mountain sermon martha mary bethany" });
   idx.push({ icon: "🎮", title: "Bible Memory Match", kind: "Game", url: "games.html", key: "memory match game cards pairs" });
   idx.push({ icon: "🎮", title: "Who Am I?", kind: "Game", url: "games.html", key: "who am i clue guess character game" });
   idx.push({ icon: "🎮", title: "Word Scramble", kind: "Game", url: "games.html", key: "word scramble letters game" });
