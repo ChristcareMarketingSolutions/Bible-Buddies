@@ -1,10 +1,10 @@
 /* Bible Buddies — offline support.
-   Pages, CSS and JS are fetched fresh from the network first (so visitors
+   Pages, CSS and JS are always checked with the server first (so visitors
    always get your latest update) and the saved copy is only used when
    offline. Images load instantly from the cache and refresh in the background.
    You no longer need to bump CACHE_VERSION on every update; only bump it if
    you rename or remove files in the ASSETS list below. */
-const CACHE_VERSION = "bible-buddies-v5";
+const CACHE_VERSION = "bible-buddies-v6";
 const ASSETS = [
   "index.html", "stories.html", "comics.html", "games.html", "colouring.html",
   "explorer.html", "memory-verses.html", "meet-jesus.html", "teachers.html",
@@ -37,7 +37,7 @@ self.addEventListener("fetch", e => {
   // Pages: network first, then the saved copy, then the friendly 404 page.
   if (req.mode === "navigate") {
     e.respondWith(
-      fetch(req).then(res => saveCopy(req, res))
+      fetch(req, { cache: "no-cache" }).then(res => saveCopy(req, res))
         .catch(() => caches.match(req, { ignoreSearch: true })
           .then(hit => hit || (new URL(req.url).pathname.endsWith("/") ? caches.match("index.html") : null))
           .then(hit => hit || caches.match("404.html")))
@@ -47,7 +47,7 @@ self.addEventListener("fetch", e => {
 
   // CSS, JS and data: network first so they always match the page, saved copy when offline.
   if (["style", "script", "manifest"].includes(req.destination) || /\.(css|js|json)$/.test(new URL(req.url).pathname)) {
-    e.respondWith(fetch(req).then(res => saveCopy(req, res)).catch(() => caches.match(req)));
+    e.respondWith(fetch(req, { cache: "no-cache" }).then(res => saveCopy(req, res)).catch(() => caches.match(req, { ignoreSearch: true })));
     return;
   }
 

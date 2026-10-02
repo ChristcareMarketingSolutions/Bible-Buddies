@@ -89,7 +89,10 @@ longer before the daily verse repeats.
 4. Wait ~1 minute. Your site is live at
    `https://YOUR-USERNAME.github.io/bible-buddies/`.
 
-*Tip:* visitors get page, CSS and JS updates automatically. Only edit
+*Tip:* visitors get page, CSS and JS updates automatically. When you change
+`css/style.css` or a file in `js/`, also change the `?v=…` number after it in
+the HTML pages (e.g. `?v=20261002` → `?v=20261015`) so browsers don't reuse an
+old saved copy. Only edit
 `CACHE_VERSION` in `service-worker.js` (e.g. `v4` → `v5`) if you rename or
 remove files listed in it.
 
