@@ -21,7 +21,7 @@
   if (typeof THREE === "undefined" || !webglOK()) { showFallback(); return; }
 
   /* ================= SETTINGS ================= */
-  const WALK = { eye: 1.7, speed: 15, bob: 0.06, roadWidth: 3.4 };
+  const WALK = { eye: 1.7, speed: 10, accel: 5.3, brake: 6, bob: 0.06, roadWidth: 3.4 };
   const LAYOUT = { perRow: 8, colGap: 82, rowGap: 210, x0: -287, z0: 420 };
   const SCENE_DIST = 13;                 // how far each scene sits from the road
   const TILE = 160, CHUNK = 120, VIEW = 290;
@@ -1372,8 +1372,8 @@
     if (!visible || document.hidden || state.mode === "loading") return;
     if (state.mode === "walking" && !reduceMotion) {
       const left = (stops[state.next].u - state.u) * ROAD_LEN;
-      const vMax = Math.min(WALK.speed, Math.sqrt(2 * 9 * Math.max(left, 0)) + 0.6);
-      state.speed = Math.min(vMax, state.speed + 8 * dt);
+      const vMax = Math.min(WALK.speed, Math.sqrt(2 * WALK.brake * Math.max(left, 0)) + 0.4);
+      state.speed = Math.min(vMax, state.speed + WALK.accel * dt);
       state.u = Math.min(stops[state.next].u, state.u + state.speed * dt / ROAD_LEN);
       state.phase += state.speed * dt * 1.6;
       state.yawOff *= Math.exp(-dt * 2.5); state.pitchOff *= Math.exp(-dt * 2.5);
