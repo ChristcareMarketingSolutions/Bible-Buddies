@@ -88,8 +88,9 @@ longer before the daily verse repeats.
 4. Wait ~1 minute. Your site is live at
    `https://YOUR-USERNAME.github.io/bible-buddies/`.
 
-*Tip:* after any update, edit `CACHE_VERSION` in `service-worker.js`
-(e.g. `v1` → `v2`) so returning visitors get the new files.
+*Tip:* visitors get page, CSS and JS updates automatically. Only edit
+`CACHE_VERSION` in `service-worker.js` (e.g. `v4` → `v5`) if you rename or
+remove files listed in it.
 
 ## 7. Connect a custom `.com` domain later
 1. Buy a domain (GoDaddy, Namecheap, Google Domains, etc.).

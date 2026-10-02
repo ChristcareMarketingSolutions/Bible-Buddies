@@ -53,8 +53,16 @@ function initSearch() {
   const results = modal.querySelector(".search-results");
   const index = buildSearchIndex();
 
-  const open = () => { modal.classList.add("open"); input.value = ""; render(""); setTimeout(() => input.focus(), 50); };
-  const close = () => modal.classList.remove("open");
+  let lastFocus = null;
+  const open = () => {
+    lastFocus = document.activeElement;
+    modal.classList.add("open"); input.value = ""; render(""); setTimeout(() => input.focus(), 50);
+  };
+  const close = () => {
+    if (!modal.classList.contains("open")) return;
+    modal.classList.remove("open");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  };
 
   function render(term) {
     term = term.trim().toLowerCase();
@@ -73,7 +81,19 @@ function initSearch() {
   modal.querySelector(".modal-close").addEventListener("click", close);
   modal.addEventListener("click", e => { if (e.target === modal) close(); });
   input.addEventListener("input", () => render(input.value));
-  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  document.addEventListener("keydown", e => {
+    if (!modal.classList.contains("open")) return;
+    if (e.key === "Escape") { close(); return; }
+    // keep keyboard focus inside the open search box
+    if (e.key === "Tab") {
+      const f = [...modal.querySelectorAll("button, input, a[href]")].filter(el => el.offsetParent !== null);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+      else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+      else if (!modal.contains(document.activeElement)) { first.focus(); e.preventDefault(); }
+    }
+  });
 }
 
 /* ---------- TODAY'S BIBLE ADVENTURE ---------- */
@@ -98,7 +118,7 @@ function initDiscover() {
     box.querySelector("[data-d-verse]").textContent = verse.ref;
   };
   draw();
-  const btn = box.querySelector("[data-discover-btn]");
+  const btn = document.querySelector("[data-discover-btn]");
   btn && btn.addEventListener("click", draw);
 }
 
@@ -106,8 +126,10 @@ function initDiscover() {
 function initDailyVerse() {
   document.querySelectorAll("[data-daily-verse]").forEach(box => {
     let i = dayIndex(VERSES.length);
+    const hide = box.querySelector("[data-v-hide]");
     const show = () => {
       const v = VERSES[i];
+      if (hide) hide.textContent = "Hide words";
       box.querySelector("[data-v-text]").textContent = `“${v.text}”`;
       box.querySelector("[data-v-ref]").textContent = v.ref;
       const ex = box.querySelector("[data-v-explain]");
@@ -116,24 +138,35 @@ function initDailyVerse() {
     show();
     const next = box.querySelector("[data-v-next]");
     next && next.addEventListener("click", () => { i = (i + 1) % VERSES.length; show(); });
-    const hide = box.querySelector("[data-v-hide]");
-    hide && hide.addEventListener("click", () => hideWords(box.querySelector("[data-v-text]")));
+    hide && hide.addEventListener("click", () => {
+      if (hide.textContent === "Hide words") {
+        hideWords(box.querySelector("[data-v-text]"), VERSES[i].text);
+        hide.textContent = "Show words";
+      } else show();
+    });
     const speak = box.querySelector("[data-v-speak]");
     speak && speak.addEventListener("click", () => speakText(VERSES[i].text + ". " + VERSES[i].ref));
   });
 }
 
-/* Hide the Words: blank out ~40% of the words, tap to reveal */
-function hideWords(el) {
-  const clean = el.textContent.replace(/[“”"]/g, "");
-  const words = clean.split(" ");
-  el.innerHTML = words.map(w => {
-    if (Math.random() < 0.4 && w.length > 2) {
-      return `<span class="blank" style="cursor:pointer;background:var(--sun);border-radius:6px;padding:0 6px" title="Tap to reveal" data-word="${w}">${"_".repeat(w.length)}</span>`;
-    }
-    return w;
-  }).join(" ");
-  el.querySelectorAll(".blank").forEach(b => b.addEventListener("click", () => { b.textContent = b.dataset.word; b.style.background = "transparent"; }));
+/* Hide the Words: blank out ~40% of the words, tap to reveal.
+   Always works from the original verse text, so hiding twice never loses words. */
+function hideWords(el, text) {
+  const words = text.split(" ");
+  let hidden = words.map(w => Math.random() < 0.4 && w.length > 2);
+  if (!hidden.some(Boolean)) hidden = words.map(w => w.length > 3);   // always hide at least one
+  el.textContent = "“";
+  words.forEach((w, k) => {
+    if (k) el.append(" ");
+    if (!hidden[k]) { el.append(w); return; }
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "blank";
+    b.textContent = "_".repeat(w.length);
+    b.setAttribute("aria-label", "Hidden word. Tap to reveal");
+    b.addEventListener("click", () => { b.replaceWith(w); });
+    el.append(b);
+  });
+  el.append("”");
 }
 
 /* ---------- TEXT-TO-SPEECH ---------- */
@@ -225,11 +258,9 @@ function initReveal() {
 
 /* ---------- BOOT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
-  initNav();
-  initSearch();
-  initDailyAdventure();
-  initDiscover();
-  initDailyVerse();
+  [initNav, initSearch, initDailyAdventure, initDiscover, initDailyVerse].forEach(fn => {
+    try { fn(); } catch (err) { console.error(fn.name, err); }
+  });
   initReveal();
   // Register service worker for offline use (ignored when opened via file://)
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {

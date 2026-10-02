@@ -36,6 +36,19 @@ function bbAddStars(amount, uniqueId) {
   return s.stars;
 }
 
+/* Award stars for a personal best only: replaying and scoring the same (or less)
+   earns nothing more, so stars and badges can't be farmed. */
+function bbAddBest(id, stars) {
+  const s = bbLoad();
+  s.best = s.best || {};
+  const gain = stars - (s.best[id] || 0);
+  if (gain <= 0) return 0;
+  s.best[id] = stars;
+  bbSave(s);
+  bbAddStars(gain);
+  return gain;
+}
+
 function bbStars() { return bbLoad().stars; }
 
 function bbCurrentBadge(stars) {

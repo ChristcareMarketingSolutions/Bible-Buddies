@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bible Stories for Kids | Bible Buddies</title>
   <meta name="description" content="Illustrated Bible stories for children: miracles, parables, Bible heroes and more.">
@@ -17,9 +18,9 @@
   <header class="site-header">
     <div class="container header-inner">
       <a class="logo" href="index.html" aria-label="Bible Buddies home">
-        <img class="logo-img" src="images/logo.png" alt="Bible Buddies, Learn, Play, Discover Jesus" width="460" height="340">
+        <img class="logo-img" src="images/logo.png" alt="Bible Buddies, Learn, Play, Discover Jesus" width="480" height="320">
       </a>
-      <nav class="main-nav" aria-label="Main">
+      <nav class="main-nav" id="main-nav" aria-label="Main">
         <ul>
           <li><a href="index.html">Home</a></li>
           <li><a href="stories.html" aria-current="page">Stories</a></li>
@@ -30,6 +31,7 @@
           <li><a href="meet-jesus.html">Meet Jesus</a></li>
           <li><a href="teachers.html">Teacher Corner</a></li>
           <li><a href="about.html">About</a></li>
+          <li class="nav-extra"><a href="contact.html">Contact</a></li>
         </ul>
       </nav>
       <div class="header-tools">
@@ -59,7 +61,7 @@
 </svg></div>
         <div style="font-size:2.1rem">📖</div>
         <h1 style="color:#fff">Bible Stories</h1>
-        <p style="font-size:1rem;max-width:45ch;margin:.5rem auto 0">Read wonderful stories from the Bible.Tap a story to open it.</p>
+        <p style="font-size:1rem;max-width:45ch;margin:.5rem auto 0">Read wonderful stories from the Bible. Tap a story to open it.</p>
       </div>
     </section>
     <section class="section"><div class="container">
@@ -111,7 +113,7 @@
       grid.innerHTML = list.map(s=>`
         <article class="card reveal">
           <div class="card-icon">${s.emoji}</div>
-          <div class="chips"><span class="chip">⏱ ${s.readMins} min</span><span class="chip chip-age">Age ${s.age}</span></div>
+          <div class="chips"><span class="chip">⏱ ${s.readMins} min</span><span class="chip chip-age">${s.age}</span></div>
           <h3>${s.title}</h3><p>${s.description}</p>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap">
             <a class="btn btn-sky" href="${s.pdf||'#'}"${s.pdf?' download':''}>Read story</a>
