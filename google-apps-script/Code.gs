@@ -11,7 +11,7 @@
    ===================================================================== */
 
 /* ---------- SETTINGS (edit these) ---------- */
-const OWNER_EMAIL = "subhashvundavalli954@gmail.com";   // where messages are sent
+const OWNER_EMAIL = "biblebuddiesworld@gmail.com";   // where messages are sent
 const SENDER_NAME = "Bible Buddies";                    // name shown as the sender
 const SITE_URL    = "https://christcaremarketingsolutions.github.io/Bible-Buddies/"; // your live site, ending in /
 const MAX_SUBMISSIONS_PER_DAY = 40;   // each one sends 2 emails; free Gmail allows ~100 emails/day

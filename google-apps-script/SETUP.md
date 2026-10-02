@@ -16,7 +16,7 @@ form never stops working.
 
 ## Step 1: Create the script (about 5 minutes)
 
-1. Sign in to Google as **subhashvundavalli954@gmail.com** and open
+1. Sign in to Google as **biblebuddiesworld@gmail.com** and open
    <https://script.google.com>.
 2. Click **New project**, then click "Untitled project" at the top and rename it
    to **Bible Buddies Contact Form**.
@@ -40,7 +40,7 @@ form never stops working.
 2. Click the gear icon ⚙ next to "Select type" and choose **Web app**.
 3. Fill in:
    - Description: `Contact form`
-   - Execute as: **Me (subhashvundavalli954@gmail.com)**
+   - Execute as: **Me (biblebuddiesworld@gmail.com)**
    - Who has access: **Anyone**
 4. Click **Deploy** and copy the **Web app URL**. It looks like
    `https://script.google.com/macros/s/AKfy.../exec`.
