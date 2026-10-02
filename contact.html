@@ -67,12 +67,16 @@
     <section class="section"><div class="container" style="max-width:620px">
       <p class="center">Have a suggestion, resource, correction or idea for Bible Buddies? We'd love to hear from you.</p>
       <div class="notice">⚠️ Children should ask a parent, guardian or teacher before contacting us.</div>
-      <div class="card">
-        <div class="form-field"><label for="cname">Name</label><input id="cname" type="text"></div>
-        <div class="form-field"><label for="cemail">Email</label><input id="cemail" type="email"></div>
-        <div class="form-field"><label for="cmsg">Message</label><textarea id="cmsg" rows="5"></textarea></div>
-        <button class="btn btn-primary btn-lg btn-block" data-contact-send>Email us ✉️</button>
-      </div>
+      <form class="card" data-contact-form novalidate>
+        <div class="form-field"><label for="cname">Name</label><input id="cname" name="name" type="text" autocomplete="name" maxlength="100" required></div>
+        <div class="form-field"><label for="cemail">Email</label><input id="cemail" name="email" type="email" autocomplete="email" maxlength="200" required></div>
+        <div class="form-field"><label for="cmsg">Message</label><textarea id="cmsg" name="message" rows="5" maxlength="5000" required></textarea></div>
+        <!-- spam trap: real people never see or fill this -->
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+        <button type="submit" class="btn btn-primary btn-lg btn-block" data-contact-send>Send message ✉️</button>
+        <p class="feedback" data-contact-status role="status" aria-live="polite" style="margin-top:1rem"></p>
+        <p style="font-size:.85rem;color:var(--ink-soft);margin:.4rem 0 0">Your name, email and message are delivered to us by email through FormSubmit.co and are only used to reply to you.</p>
+      </form>
     </div></section>
   </main>
   <footer class="site-footer">
@@ -109,15 +113,60 @@
   <script src="js/progress.js"></script>
   <script src="js/app.js"></script>
   <script>
-  document.querySelector("[data-contact-send]").addEventListener("click",()=>{
-    const name=document.getElementById("cname").value.trim();
-    const email=document.getElementById("cemail").value.trim();
-    const msg=document.getElementById("cmsg").value.trim();
-    if(!msg){ bbToast("Please write a message first."); document.getElementById("cmsg").focus(); return; }
-    const subject=encodeURIComponent("Bible Buddies message" + (name ? " from " + name : ""));
-    const body=encodeURIComponent(msg + "\n\n" + (name ? "Name: " + name + "\n" : "") + (email ? "Reply to: " + email : ""));
-    window.location.href=`mailto:subhashvundavalli954@gmail.com?subject=${subject}&body=${body}`;
-  });
+  /* Contact form: sends the message straight to the inbox below using the free
+     FormSubmit.co service (no account or server needed).
+     The FIRST message ever sent triggers an "Activate form" email from
+     FormSubmit to this address. Click the link in it once; after that every
+     message arrives in your inbox. */
+  (function(){
+    const TO = "subhashvundavalli954@gmail.com";
+    const form = document.querySelector("[data-contact-form]");
+    const btn = form.querySelector("[data-contact-send]");
+    const status = form.querySelector("[data-contact-status]");
+    const say = (text, ok) => { status.textContent = text; status.style.color = ok ? "var(--meadow-deep)" : "var(--coral-deep)"; };
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const f = form.elements;
+      const name = f.name.value.trim(), email = f.email.value.trim(), message = f.message.value.trim();
+      if (!name) { say("Please type your name."); f.name.focus(); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("Please type a valid email address so we can reply."); f.email.focus(); return; }
+      if (!message) { say("Please write a message."); f.message.focus(); return; }
+
+      btn.disabled = true; btn.textContent = "Sending…"; say("", true);
+      try {
+        const res = await fetch("https://formsubmit.co/ajax/" + TO, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            name, email, message,
+            _subject: "Bible Buddies message from " + name,
+            _replyto: email,
+            _template: "table",
+            _captcha: "false",
+            _honey: f._honey.value
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || String(data.success) === "false") throw new Error(data.message || "Send failed");
+        form.reset();
+        say("Thank you! Your message has been sent. We'll reply soon. 🐑", true);
+        bbToast("Message sent! ✉️");
+      } catch (err) {
+        // fall back to the visitor's own email app so the message is never lost
+        const body = encodeURIComponent(message + "\n\nName: " + name + "\nReply to: " + email);
+        status.innerHTML = "";
+        say("Sorry, the message couldn't be sent just now. ");
+        const a = document.createElement("a");
+        a.href = "mailto:" + TO + "?subject=" + encodeURIComponent("Bible Buddies message from " + name) + "&body=" + body;
+        a.textContent = "Send it with your email app instead";
+        a.style.fontWeight = "800";
+        status.appendChild(a);
+      } finally {
+        btn.disabled = false; btn.textContent = "Send message ✉️";
+      }
+    });
+  })();
   </script>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>

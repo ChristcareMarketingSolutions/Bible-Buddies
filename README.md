@@ -1,7 +1,7 @@
 # ✝️ Bible Buddies
 
 *Learn • Play • Discover Jesus* — a free, kid-friendly Bible website.
-Static HTML/CSS/JavaScript. No backend, no logins, no data collection.
+Static HTML/CSS/JavaScript. No backend, no logins, no data collection from children.
 Runs by double-clicking `index.html`, and deploys to GitHub Pages.
 
 ---
@@ -108,7 +108,9 @@ remove files listed in it.
 ## Child safety & copyright
 - No accounts, chat, comments, public profiles or leaderboards.
 - Progress is stored only in the child's browser (`localStorage`).
-- The contact form is for adults and uses a `mailto:` link (change the address
-  in `contact.html`).
+- The contact form is for adults. It sends messages to your inbox through the
+  free FormSubmit.co service (change the address in the `TO` line of
+  `contact.html`). The very first message triggers an "Activate form" email
+  from FormSubmit; click its link once and every later message arrives.
 - **Only add artwork, comics, stories and Bible text you have the right to use.**
   Placeholders here are original/simple so you can replace them freely.
