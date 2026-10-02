@@ -54,10 +54,15 @@ function initQuiz() {
         <h2>Your Bible Buddy Score</h2>
         <p style="font-size:1.4rem"><strong>${score} / ${QUIZ.length}</strong></p>
         <p>${score === QUIZ.length ? "Perfect! Amazing work! 🎉" : "Well done, keep exploring!"}</p>
+        <p data-q-stars style="color:var(--ink-soft)"></p>
         <button class="btn btn-primary btn-lg" data-q-again>Play again</button>
       </div>`;
     bbConfetti();
-    bbAddStars(Math.max(1, Math.round(score / 2)), "quiz-run-" + Date.now() % 100000);
+    // stars only for beating your best score (no farming by replaying)
+    const gained = bbAddBest("quiz", Math.max(1, Math.round(score / 2)));
+    resultEl.querySelector("[data-q-stars]").textContent = gained
+      ? `You earned ${gained} star${gained === 1 ? "" : "s"}! ⭐`
+      : "Beat your best score to earn more stars!";
     resultEl.querySelector("[data-q-again]").addEventListener("click", () => {
       i = 0; score = 0; resultEl.style.display = "none"; panelEl.style.display = "block"; show();
     });

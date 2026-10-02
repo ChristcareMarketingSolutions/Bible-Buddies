@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Page not found | Bible Buddies</title>
   <meta name="description" content="Page not found.">
@@ -17,9 +18,9 @@
   <header class="site-header">
     <div class="container header-inner">
       <a class="logo" href="index.html" aria-label="Bible Buddies home">
-        <img class="logo-img" src="images/logo.png" alt="Bible Buddies, Learn, Play, Discover Jesus" width="460" height="340">
+        <img class="logo-img" src="images/logo.png" alt="Bible Buddies, Learn, Play, Discover Jesus" width="480" height="320">
       </a>
-      <nav class="main-nav" aria-label="Main">
+      <nav class="main-nav" id="main-nav" aria-label="Main">
         <ul>
           <li><a href="index.html">Home</a></li>
           <li><a href="stories.html">Stories</a></li>
@@ -30,6 +31,7 @@
           <li><a href="meet-jesus.html">Meet Jesus</a></li>
           <li><a href="teachers.html">Teacher Corner</a></li>
           <li><a href="about.html">About</a></li>
+          <li class="nav-extra"><a href="contact.html">Contact</a></li>
         </ul>
       </nav>
       <div class="header-tools">
@@ -57,7 +59,7 @@
   <rect x="48" y="96" width="6" height="14" rx="3" fill="#4b4043"/>
   <rect x="66" y="96" width="6" height="14" rx="3" fill="#4b4043"/>
 </svg>
-        <h2>Oops! Buddy can't find that page.</h2>
+        <h1>Oops! Buddy can't find that page.</h1>
         <p>The page you're looking for wandered off like a lost sheep.</p>
         <a class="btn btn-primary btn-lg" href="index.html">Take me home</a>
       </div>

@@ -22,33 +22,45 @@ function initMemoryMatch() {
     // two cards per pair: the name, and the symbol
     deck = [];
     MEMORY_PAIRS.forEach((p, i) => {
-      deck.push({ pair: i, face: p.a, kind: "name" });
-      deck.push({ pair: i, face: p.b + "<br><small>" + p.label + "</small>", kind: "sym" });
+      deck.push({ pair: i, face: p.a, say: p.a, kind: "name" });
+      deck.push({ pair: i, face: p.b + "<br><small>" + p.label + "</small>", say: p.label, kind: "sym" });
     });
     deck = shuffle(deck);
     grid.innerHTML = deck.map((c, i) => `
-      <button class="mem-card" data-i="${i}" data-pair="${c.pair}" aria-label="Hidden card">
+      <button class="mem-card" data-i="${i}" data-pair="${c.pair}" data-say="${c.say}" aria-label="Card ${i + 1}, hidden">
         <span class="mem-inner">
           <span class="mem-face mem-front" aria-hidden="true"></span>
           <span class="mem-face mem-back">${c.face}</span>
         </span>
       </button>`).join("");
     grid.querySelectorAll(".mem-card").forEach(card => card.addEventListener("click", () => flip(card)));
-    timer = setInterval(() => { seconds++; timeEl.textContent = seconds + "s"; }, 1000);
+    timer = null;   // the clock starts on the first flip, not when the page loads
+  }
+
+  /* Screen readers: say what is on a card once it is turned over */
+  function label(card, state) {
+    const n = Number(card.dataset.i) + 1;
+    card.setAttribute("aria-label", state === "hidden" ? `Card ${n}, hidden` : `Card ${n}, ${card.dataset.say}${state === "matched" ? ", matched" : ""}`);
   }
 
   function flip(card) {
     if (lock || card.classList.contains("flipped") || card.classList.contains("matched")) return;
-    card.classList.add("flipped");
+    if (!timer) timer = setInterval(() => { seconds++; timeEl.textContent = seconds + "s"; }, 1000);
+    card.classList.add("flipped"); label(card, "shown");
     if (!first) { first = card; return; }
     moves++; movesEl.textContent = moves;
     if (first.dataset.pair === card.dataset.pair) {
       first.classList.add("matched"); card.classList.add("matched");
+      label(first, "matched"); label(card, "matched");
       first = null; matches++; matchEl.textContent = `${matches}/${MEMORY_PAIRS.length}`;
       if (matches === MEMORY_PAIRS.length) win();
     } else {
       lock = true;
-      setTimeout(() => { first.classList.remove("flipped"); card.classList.remove("flipped"); first = null; lock = false; }, 800);
+      setTimeout(() => {
+        first.classList.remove("flipped"); card.classList.remove("flipped");
+        label(first, "hidden"); label(card, "hidden");
+        first = null; lock = false;
+      }, 800);
     }
   }
 
