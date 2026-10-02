@@ -30,6 +30,7 @@ bible-buddies/
 │   ├── progress.js       Stars & badges (localStorage)
 │   ├── games.js          Games
 │   └── quiz.js           Quiz
+├── google-apps-script/   Optional: send contact emails from your own Gmail
 ├── images/  comics/  colouring/  stories/  resources/   ← drop your files here
 ```
 
@@ -114,5 +115,8 @@ remove files listed in it.
   from FormSubmit; click its link once and every later message arrives.
   Each sender also gets an automatic welcome email; edit its wording in
   `WELCOME_MESSAGE` near the top of the script in `contact.html`.
+- To send these emails from your own Gmail instead (free), follow
+  `google-apps-script/SETUP.md` and paste the web app address into
+  `APPS_SCRIPT_URL` in `contact.html`.
 - **Only add artwork, comics, stories and Bible text you have the right to use.**
   Placeholders here are original/simple so you can replace them freely.

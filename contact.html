@@ -75,7 +75,7 @@
         <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
         <button type="submit" class="btn btn-primary btn-lg btn-block" data-contact-send>Send message ✉️</button>
         <p class="feedback" data-contact-status role="status" aria-live="polite" style="margin-top:1rem"></p>
-        <p style="font-size:.85rem;color:var(--ink-soft);margin:.4rem 0 0">Your name, email and message are delivered to us by email through FormSubmit.co and are only used to reply to you.</p>
+        <p style="font-size:.85rem;color:var(--ink-soft);margin:.4rem 0 0">Your name, email and message are delivered to us by email and are only used to reply to you.</p>
       </form>
     </div></section>
   </main>
@@ -119,7 +119,12 @@
      FormSubmit to this address. Click the link in it once; after that every
      message arrives in your inbox. */
   (function(){
-    const TO = "subhashvundavalli954@gmail.com";
+    const TO = "biblebuddiesworld@gmail.com";
+
+    /* SEND FROM YOUR OWN GMAIL: paste your Google Apps Script web app address
+       here (see google-apps-script/SETUP.md). It ends in /exec.
+       While this is empty, the form uses FormSubmit.co as before. */
+    const APPS_SCRIPT_URL = "";
 
     /* Automatic welcome email sent to the visitor's address after they write
        to us. Edit the wording freely; {name} is replaced with their name and {site}
@@ -156,7 +161,13 @@ The Bible Buddies Team
 
       btn.disabled = true; btn.textContent = "Sending…"; say("", true);
       try {
-        const res = await fetch("https://formsubmit.co/ajax/" + TO, {
+        const res = APPS_SCRIPT_URL
+          // your Gmail (sent as plain text so the browser needs no extra permission check)
+          ? await fetch(APPS_SCRIPT_URL, {
+              method: "POST",
+              body: JSON.stringify({ name, email, message, _honey: f._honey.value })
+            })
+          : await fetch("https://formsubmit.co/ajax/" + TO, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({
@@ -170,7 +181,11 @@ The Bible Buddies Team
           })
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok || String(data.success) === "false") throw new Error(data.message || "Send failed");
+        if (!res.ok || String(data.success) !== "true") {
+          // a clear reason from your Gmail script (e.g. "wait a minute") is shown as-is
+          if (APPS_SCRIPT_URL && data.message) { say(data.message); return; }
+          throw new Error(data.message || "Send failed");
+        }
         form.reset();
         say("Thank you! Your message has been sent. We'll reply soon. 🐑", true);
         bbToast("Message sent! ✉️");
