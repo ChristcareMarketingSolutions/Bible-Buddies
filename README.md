@@ -112,5 +112,7 @@ remove files listed in it.
   free FormSubmit.co service (change the address in the `TO` line of
   `contact.html`). The very first message triggers an "Activate form" email
   from FormSubmit; click its link once and every later message arrives.
+  Each sender also gets an automatic welcome email; edit its wording in
+  `WELCOME_MESSAGE` near the top of the script in `contact.html`.
 - **Only add artwork, comics, stories and Bible text you have the right to use.**
   Placeholders here are original/simple so you can replace them freely.
