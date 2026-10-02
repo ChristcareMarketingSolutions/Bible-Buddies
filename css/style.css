@@ -750,7 +750,8 @@ img, video, canvas { max-width: 100%; }
 .jw-canvas:active { cursor: grabbing; }
 .jw-canvas canvas { width: 100% !important; height: 100% !important; display: block; }
 .jw-canvas:focus-visible { outline: 4px solid var(--sun); outline-offset: -6px; }
-.jw-fade { position: absolute; inset: 0; background: #FFFDF7; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+.jw-fade { position: absolute; inset: 0; background: #FFFDF7; opacity: 0; pointer-events: none; transition: opacity .35s ease; display: grid; place-items: center; z-index: 3; }
+.jw-fade p { font-family: var(--font-head); font-size: clamp(1.2rem, 3vw, 1.8rem); color: var(--ink); text-align: center; padding: 1rem; }
 .jw-fade.on { opacity: 1; }
 
 .jw-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; gap: .5rem; align-items: flex-start; pointer-events: none; }
@@ -799,13 +800,10 @@ img, video, canvas { max-width: 100%; }
 }
 .jw-track { position: relative; height: 34px; margin: 0 22px .5rem; }
 .jw-line { position: absolute; left: 0; right: 0; top: 15px; height: 6px; border-radius: 6px; background: repeating-linear-gradient(90deg, #EBD3A0 0 14px, #C9A86A 14px 22px); border: 2px solid var(--ink); }
-.jw-dot {
-  position: absolute; top: 2px; width: 32px; height: 32px; transform: translateX(-50%);
-  border-radius: 50%; border: 3px solid var(--ink); background: #fff; cursor: pointer;
-  font-family: var(--font-head); font-weight: 700; font-size: .85rem; color: var(--ink);
-}
-.jw-dot.done { background: var(--sun); }
-.jw-dot.current { background: var(--meadow); color: #fff; transform: translateX(-50%) scale(1.15); }
+.jw-ticks { position: absolute; inset: 0; pointer-events: none; }
+.jw-tick { position: absolute; top: 12px; width: 12px; height: 12px; transform: translateX(-50%); border-radius: 50%; border: 2px solid var(--ink); background: #fff; }
+.jw-tick.done { background: var(--sun); }
+.jw-tick.current { background: var(--meadow); transform: translateX(-50%) scale(1.35); }
 .jw-walker { position: absolute; top: -20px; transform: translateX(-50%) scaleX(-1); font-size: 1.5rem; pointer-events: none; transition: left .1s linear; }
 .jw-controls { display: flex; justify-content: center; gap: .7rem; }
 .jw-controls .btn[disabled] { opacity: .5; cursor: not-allowed; }
@@ -819,7 +817,8 @@ img, video, canvas { max-width: 100%; }
   .jw-stage { height: clamp(520px, 80vh, 720px); border-radius: var(--radius); }
   .jw-box { top: auto; left: 10px; right: 10px; width: auto; bottom: 128px; max-height: calc(100% - 200px); }
   .jw-status { font-size: .85rem; }
-  .jw-hint { top: auto; bottom: 150px; white-space: nowrap; font-size: .8rem; }
+  .jw-hint { top: 104px; white-space: nowrap; font-size: .8rem; }
+  .jw-tick { width: 7px; height: 7px; top: 14px; border-width: 1.5px; }
   .jw-top .jw-chip { padding: .3rem .7rem; }
   .jw-controls .btn-lg { min-width: 0; flex: 1; }
   .jw-reopen { bottom: 128px; }
@@ -827,3 +826,42 @@ img, video, canvas { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .jw-box, .jw-fade, .jw-walker { transition: none; }
 }
+
+.jw-top-btns { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; }
+.jw-chapter { font-size: .8rem !important; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--grape) !important; margin-bottom: .2rem !important; }
+.jw-stage:not(.ready) .jw-controls .btn { opacity: .5; }
+
+/* list of all stops inside the walk */
+.jw-panel {
+  position: absolute; top: 60px; right: 14px; bottom: 120px; width: min(360px, calc(100% - 28px)); z-index: 2;
+  display: flex; flex-direction: column; background: var(--parchment); border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card);
+}
+.jw-panel-head { display: flex; justify-content: space-between; align-items: center; padding: .7rem 1rem; border-bottom: 2px solid rgba(0,0,0,.08); font-family: var(--font-head); font-size: 1.1rem; }
+.jw-panel-head .jw-close { position: static; }
+.jw-panel-list { list-style: none; overflow-y: auto; padding: .4rem .6rem .8rem; margin: 0; }
+.jw-panel-ch { font-family: var(--font-head); font-weight: 600; color: var(--grape); margin: .7rem .3rem .3rem; }
+.jw-panel-list button { width: 100%; text-align: left; background: #fff; border: 2px solid rgba(0,0,0,.08); border-radius: 12px; padding: .45rem .6rem; margin: .2rem 0; cursor: pointer; font: inherit; font-size: .92rem; color: var(--ink); }
+.jw-panel-list button:hover, .jw-panel-list button:focus-visible { border-color: var(--sky-deep); }
+.jw-panel-list button span { display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--sun); font-weight: 800; font-size: .8rem; margin-right: .3rem; }
+
+/* stop cards under the walk */
+.jw-cards-ch { margin: 1.6rem 0 .7rem; color: var(--grape); }
+.jw-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .8rem; }
+.jw-card {
+  position: relative; display: flex; flex-direction: column; gap: .15rem; text-align: left; cursor: pointer;
+  background: #fff; border: var(--border); border-radius: var(--radius); padding: .8rem .9rem; font: inherit; color: var(--ink);
+  box-shadow: 0 4px 0 rgba(0,0,0,.1); transition: transform var(--t-fast);
+}
+.jw-card:hover, .jw-card:focus-visible { transform: translateY(-3px); }
+.jw-card strong { font-family: var(--font-head); font-size: 1.05rem; }
+.jw-card span { font-size: .95rem; line-height: 1.35; }
+.jw-card small { color: var(--ink-soft); font-size: .8rem; margin-top: .2rem; }
+.jw-card-n { position: absolute; top: .55rem; right: .7rem; font-weight: 800; color: var(--ink-soft); }
+.jw-card-e { font-size: 1.6rem; }
+@media (max-width: 700px) {
+  .jw-top-btns .jw-chip { font-size: .8rem; }
+  .jw-panel { top: 56px; bottom: 128px; right: 10px; width: calc(100% - 20px); }
+  .jw-cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+.jw-stage [hidden] { display: none !important; }
