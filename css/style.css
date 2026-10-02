@@ -865,3 +865,13 @@ img, video, canvas { max-width: 100%; }
 }
 
 .jw-stage [hidden] { display: none !important; }
+
+/* ---------- Sharing ---------- */
+.share-footer { margin-top: 1rem; }
+.share-box h2 { margin-bottom: .2rem; }
+.share-note { color: var(--ink-soft); font-size: .95rem; margin-bottom: 1rem; }
+.share-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; margin-bottom: 1rem; }
+.share-link { display: block; text-align: center; color: #fff; font-family: var(--font-head); font-weight: 600; padding: .7rem; border-radius: var(--radius-pill); border: 3px solid var(--ink); }
+.share-link:hover, .share-link:focus-visible { filter: brightness(1.08); }
+.share-copy { display: flex; gap: .5rem; }
+.share-copy .search-input { flex: 1; min-width: 0; font-size: .9rem; }
