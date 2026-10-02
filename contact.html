@@ -120,6 +120,27 @@
      message arrives in your inbox. */
   (function(){
     const TO = "subhashvundavalli954@gmail.com";
+
+    /* Automatic welcome email sent to the visitor's address after they write
+       to us. Edit the wording freely; {name} is replaced with their name and {site}
+       with this website's address. */
+    const WELCOME_MESSAGE =
+`Hi {name},
+
+Thank you for contacting Bible Buddies! We have received your message and will get back to you as soon as we can.
+
+Bible Buddies is a free website that helps children discover the Bible and learn more about Jesus through stories, games, colouring pages and memory verses. While you wait, why not explore with the children in your life:
+
+  Bible Stories:  {site}stories.html
+  Bible Games:    {site}games.html
+  Teacher Corner: {site}teachers.html
+
+"Let the little children come to me." (Matthew 19:14)
+
+God bless,
+The Bible Buddies Team
+
+(This is an automatic reply. Your message has reached us, so there is no need to send it again.)`;
     const form = document.querySelector("[data-contact-form]");
     const btn = form.querySelector("[data-contact-send]");
     const status = form.querySelector("[data-contact-status]");
@@ -144,6 +165,7 @@
             _replyto: email,
             _template: "table",
             _captcha: "false",
+            _autoresponse: WELCOME_MESSAGE.split("{name}").join(name).split("{site}").join(new URL(".", location.href).href),
             _honey: f._honey.value
           })
         });
