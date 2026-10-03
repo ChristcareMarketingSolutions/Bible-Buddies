@@ -198,9 +198,9 @@ function initDavidSling() {
   const $ = sel => document.querySelector(sel);
   const scoreEl = $("[data-sling-score]"), missEl = $("[data-sling-missed]"), leftEl = $("[data-sling-left]"), fbEl = $("[data-sling-feedback]"), resetBtn = $("[data-sling-reset]");
 
-  let phase, balloons, stones, bits, texts, released, popped, missed, spawnIn, combo, comboT, angle, power, aimV, dragging, dragged, clouds;
+  let phase, balloons, stones, bits, texts, fx, shake, released, popped, missed, spawnIn, combo, comboT, angle, power, aimV, dragging, dragged, clouds;
   function reset() {
-    phase = "ready"; balloons = []; stones = []; bits = []; texts = [];
+    phase = "ready"; balloons = []; stones = []; bits = []; texts = []; fx = []; shake = 0;
     released = 0; popped = 0; missed = 0; spawnIn = 0; combo = 0; comboT = 0;
     angle = 50; power = 70; aimV = null; dragging = false;
     clouds = [0, 1, 2].map(i => ({ x: 120 + i * 220, y: 40 + i * 18, s: 0.8 + i * 0.2 }));
@@ -276,7 +276,10 @@ function initDavidSling() {
       }
       if (s.y > ground + 10 || s.x > W + 30 || s.x < -30 || s.y < -400) stones.splice(i, 1);
     }
-    bits.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 500 * dt; p.life -= dt; });
+    bits.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g ?? 500) * dt; p.vx *= 1 - 1.2 * dt; p.rot += p.spin * dt; p.life -= dt; });
+    fx.forEach(f => { f.t += dt; if (f.kind === "string") { f.y += f.vy * dt; f.vy += 420 * dt; f.rot += f.spin * dt; } });
+    fx = fx.filter(f => f.t < f.dur);
+    shake = Math.max(0, shake - dt * 2.5);
     bits = bits.filter(p => p.life > 0);
     texts.forEach(p => { p.y -= 40 * dt; p.life -= dt; });
     texts = texts.filter(p => p.life > 0);
@@ -285,8 +288,23 @@ function initDavidSling() {
   }
   function pop(b, bx, k) {
     balloons.splice(k, 1); popped++; combo++; comboT = 1.3; hud();
-    for (let i = 0; i < 14; i++) { const a = Math.random() * 6.28, v = 80 + Math.random() * 160; bits.push({ x: bx, y: b.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, life: 0.6 + Math.random() * 0.3, c: b.color }); }
-    texts.push({ x: bx, y: b.y, text: combo > 1 ? `Combo ×${combo}!` : "Pop!", life: 0.9, c: combo > 1 ? "#F0A500" : "#41383B" });
+    const R = b.r, big = b.giant ? 1.6 : 1;
+    // 1. the balloon swells and flashes for a split second, then bursts
+    fx.push({ kind: "swell", x: bx, y: b.y, r: R, c: b.color, t: 0, dur: 0.12 });
+    // 2. shock rings
+    fx.push({ kind: "ring", x: bx, y: b.y, r: R, c: "#fff", t: 0, dur: 0.45 });
+    fx.push({ kind: "ring", x: bx, y: b.y, r: R * 0.6, c: b.color, t: -0.06, dur: 0.5 });
+    // 3. rubber shreds in the balloon's colour, plus confetti and sparkles
+    for (let i = 0; i < 12 * big; i++) { const a = Math.random() * 6.28, v = 120 + Math.random() * 200 * big; bits.push({ kind: "shred", x: bx + Math.cos(a) * R * 0.6, y: b.y + Math.sin(a) * R * 0.6, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, g: 600, rot: a, spin: (Math.random() - 0.5) * 18, sz: 5 + Math.random() * 6, life: 0.7 + Math.random() * 0.4, max: 1.1, c: b.color }); }
+    const CONF = ["#FFC93C", "#4CB4E7", "#FF7AA8", "#7ED957", "#B388FF", "#fff"];
+    for (let i = 0; i < 16 * big; i++) { const a = Math.random() * 6.28, v = 60 + Math.random() * 220 * big; bits.push({ kind: "conf", x: bx, y: b.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, g: 260, rot: a, spin: (Math.random() - 0.5) * 14, sz: 3 + Math.random() * 3, life: 0.9 + Math.random() * 0.6, max: 1.5, c: CONF[i % CONF.length] }); }
+    for (let i = 0; i < 6 * big; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 90; bits.push({ kind: "star", x: bx, y: b.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, g: -30, rot: 0, spin: 3, sz: 5 + Math.random() * 5, life: 0.8 + Math.random() * 0.4, max: 1.2, c: "#FFD84D" }); }
+    // 4. the string drops away, wriggling
+    fx.push({ kind: "string", x: bx, y: b.y + R * 1.12, vy: -40, rot: 0, spin: (Math.random() - 0.5) * 4, t: 0, dur: 1.1 });
+    // 5. the worry word floats up and fades away
+    fx.push({ kind: "word", x: bx, y: b.y, text: b.word, giant: b.giant, t: 0, dur: 1 });
+    if (b.giant) shake = 1;
+    texts.push({ x: Math.min(W - 80, Math.max(80, bx)), y: Math.max(30, b.y - R - 6), text: b.giant ? "GIANT POP!" : combo > 1 ? `Combo ×${combo}!` : "Pop!", life: 0.9, c: b.giant ? "#E2A400" : combo > 1 ? "#F0A500" : "#41383B", big: b.giant || combo > 2 });
     blip(b.giant ? 260 : 700 + Math.random() * 200, 0.12, "sine", b.giant ? 90 : 180);
   }
   function finish() {
@@ -300,6 +318,8 @@ function initDavidSling() {
   /* ---- drawing ---- */
   function draw(t) {
     ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    if (shake > 0) ctx.translate((Math.random() - 0.5) * 10 * shake, (Math.random() - 0.5) * 10 * shake);
     ctx.fillStyle = "rgba(255,236,150,.9)"; ctx.beginPath(); ctx.arc(560, 52, 26, 0, 6.28); ctx.fill();
     clouds.forEach(c => { ctx.fillStyle = "rgba(255,255,255,.9)"; [[0, 0, 18], [18, -8, 22], [38, 0, 16]].forEach(([dx, dy, r]) => { ctx.beginPath(); ctx.arc(c.x + dx * c.s, c.y + dy * c.s, r * c.s, 0, 6.28); ctx.fill(); }); });
     ctx.fillStyle = "#8BD07A"; ctx.beginPath(); ctx.moveTo(0, ground - 30); ctx.quadraticCurveTo(200, ground - 70, 380, ground - 25); ctx.quadraticCurveTo(520, ground - 55, W, ground - 20); ctx.lineTo(W, ground); ctx.lineTo(0, ground); ctx.fill();
@@ -315,10 +335,9 @@ function initDavidSling() {
       ctx.font = `700 ${b.giant ? 17 : 13}px Fredoka, Nunito, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.lineWidth = 3; ctx.strokeStyle = "rgba(65,56,59,.55)"; ctx.strokeText(b.word, bx, by); ctx.fillStyle = "#fff"; ctx.fillText(b.word, bx, by);
     });
-    // pop bits and words
-    bits.forEach(p => { ctx.globalAlpha = Math.max(0, p.life / 0.9); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 6.28); ctx.fill(); });
-    ctx.globalAlpha = 1;
-    texts.forEach(p => { ctx.globalAlpha = Math.max(0, p.life / 0.9); ctx.font = "700 18px Fredoka, Nunito, sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.strokeStyle = "#fff"; ctx.strokeText(p.text, p.x, p.y); ctx.fillStyle = p.c; ctx.fillText(p.text, p.x, p.y); });
+    // pop animation
+    drawFx();
+    texts.forEach(p => { const age = 0.9 - p.life, sc = age < 0.15 ? 0.6 + age / 0.15 * 0.6 : 1.2 - Math.min(0.2, (age - 0.15)); ctx.globalAlpha = Math.max(0, Math.min(1, p.life / 0.5)); ctx.font = `700 ${Math.round((p.big ? 24 : 18) * sc)}px Fredoka, Nunito, sans-serif`; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.strokeStyle = "#fff"; ctx.strokeText(p.text, p.x, p.y); ctx.fillStyle = p.c; ctx.fillText(p.text, p.x, p.y); });
     ctx.globalAlpha = 1;
     // ground
     ctx.fillStyle = "#63C67A"; ctx.fillRect(0, ground, W, H - ground);
@@ -341,6 +360,7 @@ function initDavidSling() {
     ctx.fillStyle = "#6E6266"; ctx.strokeStyle = "#41383B"; ctx.lineWidth = 2;
     if (stones.length < 3) { ctx.beginPath(); ctx.arc(anchor.x, anchor.y, stoneR, 0, 6.28); ctx.fill(); ctx.stroke(); }
     stones.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.y, stoneR, 0, 6.28); ctx.fill(); ctx.stroke(); });
+    ctx.restore();
     // start / end screens
     if (phase !== "playing") {
       ctx.fillStyle = "rgba(255,253,247,.82)"; ctx.fillRect(0, 0, W, H);
@@ -355,6 +375,42 @@ function initDavidSling() {
         btn("↺ Play again", W / 2, 220);
       }
     }
+  }
+  function drawFx() {
+    fx.forEach(f => {
+      if (f.t < 0) return;
+      const k = f.t / f.dur;
+      if (f.kind === "swell") {
+        const r = f.r * (1 + k * 0.35);
+        ctx.globalAlpha = 1; ctx.fillStyle = f.c; ctx.beginPath(); ctx.ellipse(f.x, f.y, r * 0.92, r * 1.08, 0, 0, 6.28); ctx.fill();
+        ctx.globalAlpha = k; ctx.fillStyle = "#fff"; ctx.fill();
+      } else if (f.kind === "ring") {
+        const e = 1 - Math.pow(1 - k, 3);
+        ctx.globalAlpha = 1 - k; ctx.strokeStyle = f.c; ctx.lineWidth = 6 * (1 - k) + 1;
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.8 + e * 1.4), 0, 6.28); ctx.stroke();
+      } else if (f.kind === "string") {
+        ctx.globalAlpha = 1 - k; ctx.strokeStyle = "#41383B"; ctx.lineWidth = 1.5;
+        ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rot); ctx.beginPath(); ctx.moveTo(0, 0);
+        for (let j = 1; j <= 6; j++) ctx.lineTo(Math.sin(f.t * 14 + j) * 5, j * 7);
+        ctx.stroke(); ctx.restore();
+      } else if (f.kind === "word") {
+        ctx.globalAlpha = Math.max(0, 1 - k * 1.2); ctx.font = `700 ${f.giant ? 17 : 13}px Fredoka, Nunito, sans-serif`;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.save(); ctx.translate(f.x, f.y - k * 50); ctx.scale(1 + k * 0.5, 1 + k * 0.5);
+        ctx.lineWidth = 3; ctx.strokeStyle = "rgba(65,56,59,.55)"; ctx.strokeText(f.text, 0, 0); ctx.fillStyle = "#fff"; ctx.fillText(f.text, 0, 0);
+        ctx.restore(); ctx.textBaseline = "alphabetic";
+      }
+    });
+    bits.forEach(p => {
+      ctx.globalAlpha = Math.max(0, Math.min(1, p.life / (p.max * 0.5))); ctx.fillStyle = p.c;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      if (p.kind === "shred") { ctx.strokeStyle = "rgba(65,56,59,.6)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-p.sz, 0); ctx.quadraticCurveTo(0, -p.sz, p.sz, 0); ctx.quadraticCurveTo(0, p.sz * 0.3, -p.sz, 0); ctx.fill(); ctx.stroke(); }
+      else if (p.kind === "conf") { ctx.fillRect(-p.sz, -p.sz / 2, p.sz * 2, p.sz); }
+      else if (p.kind === "star") { ctx.beginPath(); for (let j = 0; j < 8; j++) { const rr2 = j % 2 ? p.sz * 0.4 : p.sz, a = j * Math.PI / 4; ctx.lineTo(Math.cos(a) * rr2, Math.sin(a) * rr2); } ctx.closePath(); ctx.fill(); }
+      else { ctx.beginPath(); ctx.arc(0, 0, 4, 0, 6.28); ctx.fill(); }
+      ctx.restore();
+    });
+    ctx.globalAlpha = 1;
   }
   function btn(label, x, y) {
     ctx.font = "700 22px Fredoka, Nunito, sans-serif"; const w = ctx.measureText(label).width + 48;
