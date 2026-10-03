@@ -22,15 +22,15 @@ function initMemoryMatch() {
     // two cards per pair: the name, and the symbol
     deck = [];
     MEMORY_PAIRS.forEach((p, i) => {
-      deck.push({ pair: i, face: p.a, say: p.a, kind: "name" });
-      deck.push({ pair: i, face: p.b + "<br><small>" + p.label + "</small>", say: p.label, kind: "sym" });
+      deck.push({ pair: i, face: `<span class="mem-name">${p.a}</span>`, say: p.a, kind: "name" });
+      deck.push({ pair: i, face: `<span class="mem-emoji">${p.b}</span><span class="mem-label">${p.label}</span>`, say: p.label, kind: "sym" });
     });
     deck = shuffle(deck);
     grid.innerHTML = deck.map((c, i) => `
-      <button class="mem-card" data-i="${i}" data-pair="${c.pair}" data-say="${c.say}" aria-label="Card ${i + 1}, hidden">
+      <button class="mem-card mem-k-${c.kind} mem-c${(i + Math.floor(i / 4)) % 4}" data-i="${i}" data-pair="${c.pair}" data-say="${c.say}" aria-label="Card ${i + 1}, hidden">
         <span class="mem-inner">
-          <span class="mem-face mem-front" aria-hidden="true"></span>
-          <span class="mem-face mem-back">${c.face}</span>
+          <span class="mem-face mem-front" aria-hidden="true"><span class="mem-q">?</span></span>
+          <span class="mem-face mem-back">${c.face}<span class="mem-tick" aria-hidden="true">✓</span></span>
         </span>
       </button>`).join("");
     grid.querySelectorAll(".mem-card").forEach(card => card.addEventListener("click", () => flip(card)));
