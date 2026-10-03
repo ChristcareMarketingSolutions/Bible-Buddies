@@ -12,25 +12,36 @@ function initMemoryMatch() {
   const matchEl = document.querySelector("[data-mem-matches]");
   const timeEl  = document.querySelector("[data-mem-time]");
   const restart = document.querySelector("[data-mem-restart]");
+  const factEl  = document.querySelector("[data-mem-fact]");
+  const levelBtns = [...document.querySelectorAll("[data-mem-level]")];
+  const LEVELS = { easy: 6, medium: 8, hard: 12 };
+  let level = "medium";
+  try { level = localStorage.getItem("bibleBuddies.memoryLevel") || "medium"; } catch (e) {}
+  if (!LEVELS[level]) level = "medium";
 
-  let deck, first, lock, moves, matches, seconds, timer;
+  let deck, pairs, first, lock, moves, matches, seconds, timer;
 
   function build() {
     clearInterval(timer);
     moves = 0; matches = 0; seconds = 0; first = null; lock = false;
-    movesEl.textContent = "0"; matchEl.textContent = `0/${MEMORY_PAIRS.length}`; timeEl.textContent = "0s";
+    pairs = shuffle(MEMORY_PAIRS).slice(0, LEVELS[level]);       // a new mix of heroes every game
+    movesEl.textContent = "0"; matchEl.textContent = `0/${pairs.length}`; timeEl.textContent = "0s";
+    grid.dataset.level = level;
+    levelBtns.forEach(b => { const on = b.dataset.memLevel === level; b.classList.toggle("active", on); b.setAttribute("aria-pressed", String(on)); });
+    if (factEl) factEl.textContent = "Find the pairs! Each match tells you something from the Bible. 📖";
     // two cards per pair: the name, and the symbol
     deck = [];
-    MEMORY_PAIRS.forEach((p, i) => {
-      deck.push({ pair: i, face: p.a, say: p.a, kind: "name" });
-      deck.push({ pair: i, face: p.b + "<br><small>" + p.label + "</small>", say: p.label, kind: "sym" });
+    pairs.forEach((p, i) => {
+      const longest = Math.max(...p.a.split(" ").map(w => w.length));   // smaller text for long names, so words never break
+      deck.push({ pair: i, face: `<span class="mem-name" style="font-size:${Math.min(20, 80 / (longest * 0.58)).toFixed(1)}cqi">${p.a}</span>`, say: p.a, kind: "name" });
+      deck.push({ pair: i, face: `<span class="mem-emoji">${p.b}</span><span class="mem-label">${p.label}</span>`, say: p.label, kind: "sym" });
     });
     deck = shuffle(deck);
     grid.innerHTML = deck.map((c, i) => `
-      <button class="mem-card" data-i="${i}" data-pair="${c.pair}" data-say="${c.say}" aria-label="Card ${i + 1}, hidden">
+      <button class="mem-card mem-k-${c.kind} mem-c${(i + Math.floor(i / 4)) % 4}" data-i="${i}" data-pair="${c.pair}" data-say="${c.say}" aria-label="Card ${i + 1}, hidden">
         <span class="mem-inner">
-          <span class="mem-face mem-front" aria-hidden="true"></span>
-          <span class="mem-face mem-back">${c.face}</span>
+          <span class="mem-face mem-front" aria-hidden="true"><span class="mem-q">?</span></span>
+          <span class="mem-face mem-back">${c.face}<span class="mem-tick" aria-hidden="true">✓</span></span>
         </span>
       </button>`).join("");
     grid.querySelectorAll(".mem-card").forEach(card => card.addEventListener("click", () => flip(card)));
@@ -52,8 +63,10 @@ function initMemoryMatch() {
     if (first.dataset.pair === card.dataset.pair) {
       first.classList.add("matched"); card.classList.add("matched");
       label(first, "matched"); label(card, "matched");
-      first = null; matches++; matchEl.textContent = `${matches}/${MEMORY_PAIRS.length}`;
-      if (matches === MEMORY_PAIRS.length) win();
+      const p = pairs[Number(card.dataset.pair)];
+      if (factEl) factEl.innerHTML = `<strong>${p.b} ${p.a}:</strong> ${p.fact} <span class="mem-ref">(${p.ref})</span>`;
+      first = null; matches++; matchEl.textContent = `${matches}/${pairs.length}`;
+      if (matches === pairs.length) win();
     } else {
       lock = true;
       setTimeout(() => {
@@ -68,10 +81,16 @@ function initMemoryMatch() {
     clearInterval(timer);
     bbCelebrate();
     bbToast(`Great job! ⭐ ${moves} moves, ${seconds}s`);
-    bbAddStars(5, "game-memory");   // rewarded once
+    if (factEl) factEl.innerHTML = `🎉 <strong>You found all ${pairs.length} pairs!</strong> Press <strong>New game</strong> for a new mix of Bible heroes.`;
+    bbAddStars({ easy: 3, medium: 5, hard: 8 }[level], "game-memory-" + level);   // rewarded once per level
   }
 
   restart && restart.addEventListener("click", build);
+  levelBtns.forEach(b => b.addEventListener("click", () => {
+    level = b.dataset.memLevel;
+    try { localStorage.setItem("bibleBuddies.memoryLevel", level); } catch (e) {}
+    build();
+  }));
   build();
 }
 

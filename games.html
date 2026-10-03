@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100202">
+  <link rel="stylesheet" href="css/style.css?v=2026100302">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -89,10 +89,16 @@
     <section class="section"><div class="container">
 
       <!-- MEMORY MATCH -->
-      <div class="section-head"><h2>🧠 Bible Memory Match</h2><p>Flip the cards and match each hero with their symbol.</p></div>
+      <div class="section-head"><h2>🧠 Bible Memory Match</h2><p>Tap two cards to turn them over. Find each Bible hero and their picture, like <strong>Noah</strong> and the <strong>🚢 Ark</strong>! Every game has a new mix of heroes.</p></div>
       <div class="game-stage reveal" style="margin-bottom:2.5rem">
+        <div class="mem-levels" role="group" aria-label="Choose a level">
+          <button type="button" class="filter-btn" data-mem-level="easy">🐣 Easy · 6 pairs</button>
+          <button type="button" class="filter-btn" data-mem-level="medium">🐑 Medium · 8 pairs</button>
+          <button type="button" class="filter-btn" data-mem-level="hard">🦁 Hard · 12 pairs</button>
+        </div>
         <div class="game-hud"><span>Moves: <b data-mem-moves>0</b></span><span>Matches: <b data-mem-matches>0</b></span><span>Time: <b data-mem-time>0s</b></span></div>
         <div class="memory-grid" data-memory-grid></div>
+        <p class="mem-fact" data-mem-fact aria-live="polite"></p>
         <div class="center" style="margin-top:1rem"><button class="btn btn-meadow" data-mem-restart>New game</button></div>
       </div>
 
@@ -197,12 +203,12 @@
       <div class="search-results"></div>
     </div>
   </div>
-  <script src="js/data.js?v=2026100202"></script>
-  <script src="js/progress.js?v=2026100202"></script>
-  <script src="js/app.js?v=2026100202"></script>
-  <script src="js/games.js?v=2026100202"></script>
-  <script src="js/quiz.js?v=2026100202"></script>
-  <script src="js/helper.js?v=2026100202"></script>
+  <script src="js/data.js?v=2026100302"></script>
+  <script src="js/progress.js?v=2026100302"></script>
+  <script src="js/app.js?v=2026100302"></script>
+  <script src="js/games.js?v=2026100302"></script>
+  <script src="js/quiz.js?v=2026100302"></script>
+  <script src="js/helper.js?v=2026100302"></script>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>

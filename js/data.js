@@ -108,15 +108,33 @@ const TEACHINGS = [
 ];
 
 /* ---------- GAME: MEMORY MATCH (name paired with symbol) ---------- */
-const MEMORY_PAIRS = [
-  { a: "Noah",   b: "🚢", label: "Ark" },
-  { a: "David",  b: "🎯", label: "Sling" },
-  { a: "Moses",  b: "🌊", label: "Red Sea" },
-  { a: "Jesus",  b: "✝️", label: "Cross" },
-  { a: "Peter",  b: "🐟", label: "Fish" },
-  { a: "Jonah",  b: "🐋", label: "Whale" },
-  { a: "Daniel", b: "🦁", label: "Lions" },
-  { a: "Joseph", b: "🧥", label: "Coat" }
+const MEMORY_PAIRS = [   // each game picks some at random; add more any time
+  { a: "Noah", b: "🚢", label: "Ark", fact: "Noah built an ark, and God kept his family and the animals safe.", ref: "Genesis 6–9" },
+  { a: "David", b: "🎯", label: "Sling", fact: "Young David beat the giant Goliath with a sling and a stone.", ref: "1 Samuel 17" },
+  { a: "Moses", b: "🌊", label: "Red Sea", fact: "God opened the Red Sea so Moses and the people could cross.", ref: "Exodus 14" },
+  { a: "Jesus", b: "✝️", label: "Cross", fact: "Jesus died on the cross and rose again to save us.", ref: "Luke 23–24" },
+  { a: "Peter", b: "🐟", label: "Fish", fact: "Peter was a fisherman. Jesus said He would make him a fisher of people.", ref: "Matthew 4:18–19" },
+  { a: "Jonah", b: "🐋", label: "Big fish", fact: "Jonah was swallowed by a great fish, and then he obeyed God.", ref: "Jonah 1–3" },
+  { a: "Daniel", b: "🦁", label: "Lions", fact: "God shut the lions' mouths and kept Daniel safe.", ref: "Daniel 6" },
+  { a: "Joseph", b: "🧥", label: "Coat", fact: "Jacob gave his son Joseph a special coat.", ref: "Genesis 37" },
+  { a: "Abraham", b: "⭐", label: "Stars", fact: "God told Abraham his family would be as many as the stars.", ref: "Genesis 15:5" },
+  { a: "Adam & Eve", b: "🌿", label: "Garden", fact: "God made Adam and Eve and put them in the Garden of Eden.", ref: "Genesis 2" },
+  { a: "Elijah", b: "🔥", label: "Fire", fact: "When Elijah prayed, God sent fire from heaven.", ref: "1 Kings 18" },
+  { a: "Zacchaeus", b: "🌳", label: "Tree", fact: "Zacchaeus was short, so he climbed a tree to see Jesus.", ref: "Luke 19" },
+  { a: "Mary", b: "👶", label: "Baby Jesus", fact: "Mary was the mother of baby Jesus.", ref: "Luke 2" },
+  { a: "Gideon", b: "🏺", label: "Jars", fact: "Gideon's small army used trumpets, jars and torches.", ref: "Judges 7" },
+  { a: "Samuel", b: "👂", label: "Listening", fact: "Young Samuel listened when God called his name.", ref: "1 Samuel 3" },
+  { a: "Esther", b: "👑", label: "Crown", fact: "Queen Esther bravely helped to save her people.", ref: "Esther 4–8" },
+  { a: "Ruth", b: "🌾", label: "Grain", fact: "Ruth gathered grain in Boaz's field to care for Naomi.", ref: "Ruth 2" },
+  { a: "Joshua", b: "🎺", label: "Trumpets", fact: "The walls of Jericho fell down after the trumpets blew.", ref: "Joshua 6" },
+  { a: "Samson", b: "💪", label: "Strength", fact: "God gave Samson great strength.", ref: "Judges 13–16" },
+  { a: "Solomon", b: "🏛️", label: "Temple", fact: "King Solomon built the Temple for God in Jerusalem.", ref: "1 Kings 6" },
+  { a: "John the Baptist", b: "💧", label: "Baptism", fact: "John baptized people in the Jordan River, and he baptized Jesus too.", ref: "Matthew 3" },
+  { a: "Paul", b: "✉️", label: "Letters", fact: "Paul wrote letters to the churches, and many of them are in the Bible.", ref: "Romans 1:1" },
+  { a: "Jacob", b: "🪜", label: "Ladder", fact: "Jacob dreamed of a ladder reaching up to heaven.", ref: "Genesis 28" },
+  { a: "Bartimaeus", b: "👀", label: "Sight", fact: "Jesus healed blind Bartimaeus so he could see.", ref: "Mark 10" },
+  { a: "Rahab", b: "🧵", label: "Red cord", fact: "Rahab hung a red cord from her window and was kept safe.", ref: "Joshua 2 and 6" },
+  { a: "Nehemiah", b: "🧱", label: "Walls", fact: "Nehemiah led the people to rebuild the walls of Jerusalem.", ref: "Nehemiah 2–6" }
 ];
 
 /* ---------- GAME: WHO AM I?  (50+ clues) ---------- */
