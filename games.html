@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100302">
+  <link rel="stylesheet" href="css/style.css?v=2026100303">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -139,11 +139,11 @@
       </div>
 
       <!-- DAVID'S SLING -->
-      <div class="section-head"><h2>🪨 David's Sling</h2><p>Aim and shoot to pop the giant worries. Pull the sling back and let go, or use the arrow keys and space.</p></div>
+      <div class="section-head"><h2>🪨 David's Sling</h2><p>50 worry balloons float up into the sky. Tap a balloon to throw a stone and pop it before it floats away! You can also pull the sling back and let go, or use the arrow keys and space.</p></div>
       <div class="game-stage reveal" style="margin-bottom:2.5rem">
-        <div class="game-hud"><span>Popped: <b data-sling-score>0</b> / <b data-sling-total>5</b></span></div>
-        <canvas class="sling-canvas" data-sling-canvas width="640" height="360" tabindex="0" aria-label="David's sling game. Drag to aim and release to shoot, or use the arrow keys and the space bar."></canvas>
-        <p class="feedback" data-sling-feedback></p>
+        <div class="game-hud"><span>🎈 Popped: <b data-sling-score>0</b></span><span>💨 Missed: <b data-sling-missed>0</b></span><span>Still to come: <b data-sling-left>50</b></span></div>
+        <canvas class="sling-canvas" data-sling-canvas width="640" height="360" tabindex="0" aria-label="David's sling game. Balloons float up from the bottom. Tap a balloon to throw a stone at it, or use the arrow keys to aim and the space bar to throw."></canvas>
+        <p class="feedback" data-sling-feedback aria-live="polite"></p>
         <div class="center" style="margin-top:1rem"><button class="btn btn-meadow" data-sling-reset>Play again</button></div>
       </div>
 
@@ -203,12 +203,12 @@
       <div class="search-results"></div>
     </div>
   </div>
-  <script src="js/data.js?v=2026100302"></script>
-  <script src="js/progress.js?v=2026100302"></script>
-  <script src="js/app.js?v=2026100302"></script>
-  <script src="js/games.js?v=2026100302"></script>
-  <script src="js/quiz.js?v=2026100302"></script>
-  <script src="js/helper.js?v=2026100302"></script>
+  <script src="js/data.js?v=2026100303"></script>
+  <script src="js/progress.js?v=2026100303"></script>
+  <script src="js/app.js?v=2026100303"></script>
+  <script src="js/games.js?v=2026100303"></script>
+  <script src="js/quiz.js?v=2026100303"></script>
+  <script src="js/helper.js?v=2026100303"></script>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>
