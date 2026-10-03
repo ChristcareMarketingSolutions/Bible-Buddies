@@ -123,3 +123,19 @@ remove files listed in it.
   `APPS_SCRIPT_URL` in `contact.html`.
 - **Only add artwork, comics, stories and Bible text you have the right to use.**
   Placeholders here are original/simple so you can replace them freely.
+
+---
+
+## 8. Search engines (SEO) and sharing
+- Every page has its own title, description, share picture (`images/og-image.jpg`,
+  `images/og-journey.jpg`) and structured data in the `<!-- SEO -->` block in its `<head>`.
+- `sitemap.xml` lists every page. If you add a page, add it there too.
+- The site address used for sharing is `SITE_URL` near the top of the sharing code in
+  `js/app.js`. If you move to your own domain, change it there, in `sitemap.xml`,
+  `robots.txt` and the `<!-- SEO -->` blocks.
+- **Google Search Console** (free): go to <https://search.google.com/search-console>,
+  add the site address as a "URL prefix" property, verify it (choose "HTML tag" and send
+  the tag to your developer), then submit `sitemap.xml` under **Sitemaps**.
+- Sharing: every page has a "Share Bible Buddies" button in the footer, the daily verse
+  has "Share verse" (makes a picture card), and each Journey stop has a link of its own,
+  e.g. `journey.html#stop-12`.

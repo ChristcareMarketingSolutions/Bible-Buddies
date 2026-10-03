@@ -146,6 +146,15 @@ function initDailyVerse() {
     });
     const speak = box.querySelector("[data-v-speak]");
     speak && speak.addEventListener("click", () => speakText(VERSES[i].text + ". " + VERSES[i].ref));
+    // share today's verse as a picture card
+    const row = box.querySelector(".btn-row");
+    if (row) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn btn-grape"; b.textContent = "📤 Share verse";
+      b.title = "Grown-ups: share this verse as a picture";
+      b.addEventListener("click", () => bbShareVerse(VERSES[i]));
+      row.appendChild(b);
+    }
   });
 }
 
@@ -167,6 +176,112 @@ function hideWords(el, text) {
     el.append(b);
   });
   el.append("”");
+}
+
+/* ---------- SHARING (for grown-ups) ----------
+   Uses the phone's own share sheet when there is one; otherwise shows
+   WhatsApp, Facebook, X, email and copy-link buttons. */
+const SITE_URL = "https://christcaremarketingsolutions.github.io/Bible-Buddies/";
+function bbPageUrl() {
+  const c = document.querySelector('link[rel="canonical"]');
+  return c ? c.href : location.href.split("#")[0];
+}
+function bbShare(o = {}) {
+  const url = o.url || bbPageUrl();
+  const title = o.title || document.title;
+  const text = o.text || "A free, fun Bible website for kids: stories, games and a 3D walk with Jesus!";
+  if (navigator.share) { navigator.share({ title, text, url }).catch(() => {}); return; }
+  let m = document.querySelector("#share-modal");
+  if (!m) {
+    m = document.createElement("div");
+    m.className = "modal"; m.id = "share-modal";
+    m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); m.setAttribute("aria-label", "Share");
+    m.innerHTML = `<div class="modal-box share-box">
+      <button class="modal-close" type="button" aria-label="Close">✕</button>
+      <h2>📤 Share</h2>
+      <p class="share-note">Ask a grown-up before sharing.</p>
+      <div class="share-grid" data-share-links></div>
+      <div class="share-copy"><input class="search-input" data-share-url readonly aria-label="Link to share"><button type="button" class="btn btn-primary" data-share-copy>Copy link</button></div>
+    </div>`;
+    document.body.appendChild(m);
+    const close = () => m.classList.remove("open");
+    m.querySelector(".modal-close").addEventListener("click", close);
+    m.addEventListener("click", e => { if (e.target === m) close(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+    m.querySelector("[data-share-copy]").addEventListener("click", () => {
+      const inp = m.querySelector("[data-share-url]"); inp.select();
+      (navigator.clipboard ? navigator.clipboard.writeText(inp.value) : Promise.reject()).catch(() => document.execCommand("copy"));
+      bbToast("Link copied! 📋");
+    });
+  }
+  const e = encodeURIComponent;
+  m.querySelector("[data-share-links]").innerHTML = [
+    ["WhatsApp", "#25D366", `https://wa.me/?text=${e(text + " " + url)}`],
+    ["Facebook", "#1877F2", `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`],
+    ["X", "#111111", `https://twitter.com/intent/tweet?text=${e(text)}&url=${e(url)}`],
+    ["Email", "#7C5CBF", `mailto:?subject=${e(title)}&body=${e(text + "\n\n" + url)}`]
+  ].map(([n, c, href]) => `<a class="share-link" style="background:${c}" href="${href}" target="_blank" rel="noopener">${n}</a>`).join("");
+  m.querySelector("[data-share-url]").value = url;
+  m.classList.add("open");
+  setTimeout(() => m.querySelector("[data-share-copy]").focus(), 50);
+}
+function initShareButtons() {
+  const brand = document.querySelector(".footer-brand");
+  if (brand && !brand.querySelector("[data-share]")) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn btn-primary share-footer"; b.setAttribute("data-share", "");
+    b.textContent = "📤 Share Bible Buddies";
+    brand.appendChild(b);
+  }
+  document.querySelectorAll("[data-share]").forEach(b => b.addEventListener("click", () => bbShare({ url: b.dataset.shareUrl || SITE_URL, title: "Bible Buddies: free Bible stories, games and a 3D walk with Jesus for kids" })));
+}
+
+/* Today's verse as a square picture card (made in the browser, nothing uploaded) */
+function bbShareVerse(v) {
+  const S = 1080, c = document.createElement("canvas"); c.width = c.height = S;
+  const g = c.getContext("2d");
+  const font = (w, px) => `${w} ${px}px Fredoka, "Trebuchet MS", sans-serif`;
+  const draw = logo => {
+    const grd = g.createLinearGradient(0, 0, 0, S); grd.addColorStop(0, "#4FB7EC"); grd.addColorStop(1, "#BFE6FB");
+    g.fillStyle = grd; g.fillRect(0, 0, S, S);
+    g.fillStyle = "#63C67A"; g.beginPath(); g.moveTo(0, 930); g.bezierCurveTo(300, 860, 700, 1000, S, 900); g.lineTo(S, S); g.lineTo(0, S); g.fill();
+    // card
+    const x = 70, y = 200, w = S - 140, h = 640, r = 48;
+    g.fillStyle = "rgba(0,0,0,.12)"; roundRect(g, x, y + 14, w, h, r); g.fill();
+    g.fillStyle = "#FFF6E5"; g.strokeStyle = "#41383B"; g.lineWidth = 8; roundRect(g, x, y, w, h, r); g.fill(); g.stroke();
+    g.fillStyle = "#7C5CBF"; g.font = font(600, 46); g.textAlign = "center"; g.fillText("⭐ Today's Memory Verse", S / 2, y + 90);
+    // verse text, wrapped to fit
+    let px = 64, lines;
+    do { g.font = font(600, px); lines = wrap(g, `“${v.text}”`, w - 120); px -= 4; } while (lines.length * px * 1.25 > h - 260 && px > 34);
+    g.fillStyle = "#41383B"; const lh = (px + 4) * 1.25, top = y + 130 + (h - 260 - lines.length * lh) / 2 + lh * 0.8;
+    lines.forEach((ln, k) => g.fillText(ln, S / 2, top + k * lh));
+    g.fillStyle = "#F0A500"; g.font = font(700, 50); g.fillText(v.ref, S / 2, y + h - 70);
+    if (logo) g.drawImage(logo, 60, 40, 210, 140);
+    g.fillStyle = "#41383B"; g.font = font(600, 40); g.textAlign = "right"; g.fillText("Bible Buddies", S - 60, 110);
+    g.font = font(500, 28); g.fillText("Learn • Play • Discover Jesus", S - 60, 150);
+    g.textAlign = "center"; g.fillStyle = "#FFFFFF"; g.font = font(600, 36); g.fillText("Free Bible stories & games for kids", S / 2, 985);
+    g.font = font(500, 27); g.fillText(SITE_URL.replace(/^https:\/\//, "").replace(/\/$/, ""), S / 2, 1035);
+    c.toBlob(async blob => {
+      const file = new File([blob], "bible-buddies-verse.png", { type: "image/png" });
+      const text = `${v.text} (${v.ref}) — from Bible Buddies, a free Bible website for kids: ${SITE_URL}`;
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: "Today's Memory Verse", text }); return; } catch (e) { if (e.name === "AbortError") return; }
+      }
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      bbToast("Verse picture saved! 🖼️ Share it with a grown-up.");
+    }, "image/png");
+  };
+  const logo = new Image();
+  logo.onload = () => draw(logo); logo.onerror = () => draw(null);
+  logo.src = "images/logo.png";
+  (document.fonts && document.fonts.load ? document.fonts.load(font(600, 40)) : Promise.resolve()).catch(() => {});
+}
+function roundRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+function wrap(g, text, max) {
+  const out = []; let line = "";
+  text.split(" ").forEach(word => { const t = line ? line + " " + word : word; if (g.measureText(t).width > max && line) { out.push(line); line = word; } else line = t; });
+  if (line) out.push(line); return out;
 }
 
 /* ---------- TEXT-TO-SPEECH ---------- */
@@ -258,7 +373,7 @@ function initReveal() {
 
 /* ---------- BOOT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
-  [initNav, initSearch, initDailyAdventure, initDiscover, initDailyVerse].forEach(fn => {
+  [initNav, initSearch, initDailyAdventure, initDiscover, initDailyVerse, initShareButtons].forEach(fn => {
     try { fn(); } catch (err) { console.error(fn.name, err); }
   });
   initReveal();

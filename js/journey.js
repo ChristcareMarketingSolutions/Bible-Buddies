@@ -1232,9 +1232,12 @@
       chapter: `Stop ${i + 1} of ${stops.length} · ${s.chapter.title}`, emoji: s.emoji, title: `${s.place}: ${s.title}`, ref: s.ref,
       html: s.paragraphs.map(p => `<p>${p}</p>`).join("") + `<p class="jw-verse">“${s.verse.text}”<span>${s.verse.ref}</span></p>`,
       speak: `${s.place}. ${s.title}. ` + s.paragraphs.map(p => p.replace(/\s*\([^)]*\)\s*$/, "")).join(" ") + ` ${s.verse.text}`,
-      primary: last ? "Finish the journey ▶" : `Walk to ${stops[i + 1].place} ▶`
+      primary: last ? "Finish the journey ▶" : `Walk to ${stops[i + 1].place} ▶`,
+      extra: typeof bbShare === "function" ? `<button type="button" class="btn btn-grape" data-jw-extra title="Grown-ups: share this stop">📤 Share</button>` : "",
+      onExtra: () => bbShare({ url: stopUrl(i), title: `${s.place}: ${s.title} | Journey with Jesus`, text: `Walk with Jesus to ${s.place} (${s.ref}) in this free 3D Bible walk for kids!` })
     });
   }
+  function stopUrl(i) { return (typeof SITE_URL !== "undefined" ? SITE_URL : location.href.split("#")[0].replace(/journey\.html$/, "")) + "journey.html#stop-" + (i + 1); }
   function showIntro() {
     setStatus("Ready to walk");
     const cont = saved > 0 && saved < stops.length;
@@ -1271,6 +1274,7 @@
     state.u = stops[i].u; state.stop = i; state.next = i; state.mode = "atStop"; state.speed = 0;
     setStatus(`📍 ${i + 1} of ${stops.length} · ${stops[i].place}`);
     applyToggles(); showStop(i); updateButtons(); updateProgress(); save(i);
+    try { history.replaceState(null, "", "#stop-" + (i + 1)); } catch (e) {}
     if (typeof bbAddStars === "function") bbAddStars(1, "journey-" + stops[i].id);
   }
   function forward() {
@@ -1289,7 +1293,7 @@
     fadeJump(stops[i].u, () => arrive(i));
   }
   function goToStop(i) { hideBox(); closePanel(); fadeJump(stops[i].u, () => arrive(i)); }
-  function restart() { fadeJump(0, () => { state.u = 0; state.stop = -1; state.next = 0; state.mode = "intro"; applyToggles(); showIntro(); updateButtons(); updateProgress(); }); }
+  function restart() { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {} fadeJump(0, () => { state.u = 0; state.stop = -1; state.next = 0; state.mode = "intro"; applyToggles(); showIntro(); updateButtons(); updateProgress(); }); }
   function finish() {
     state.mode = "done"; setStatus("🎉 Journey complete!"); save(0);
     showBox({
@@ -1297,7 +1301,9 @@
       html: `<p>You walked with Jesus through ${stops.length} places: His birth, His teaching and miracles, His death and resurrection, all the way to the first Christians sharing the Good News.</p>
              <p class="jw-verse">“Jesus Christ is the same yesterday, today, and forever.”<span>Hebrews 13:8</span></p>`,
       speak: "You finished the journey! You walked with Jesus from His birth all the way to the first Christians sharing the good news. Jesus Christ is the same yesterday, today, and forever.",
-      primary: "Walk again ↺"
+      primary: "Walk again ↺",
+      extra: typeof bbShare === "function" ? `<button type="button" class="btn btn-grape" data-jw-extra>📤 Share the journey</button>` : "",
+      onExtra: () => bbShare({ url: stopUrl(0).replace(/#stop-1$/, ""), title: "Journey with Jesus: a free 3D Bible walk for kids", text: `I walked with Jesus through ${stops.length} places from the Bible! Try this free 3D walk for kids:` })
     });
     updateButtons(); updateProgress();
     if (typeof bbAddStars === "function") bbAddStars(2, "journey-complete");
@@ -1403,6 +1409,8 @@
   build().then(ms => {
     state.mode = "intro"; applyToggles(); showIntro(); updateButtons(); updateProgress();
     stage.classList.add("ready");
+    const m = location.hash.match(/^#stop-(\d+)$/), n = m ? Number(m[1]) : 0;   // shared link to a stop
+    if (n >= 1 && n <= stops.length) goToStop(n - 1);
     window.__journey = { state, stops, ROAD_LEN, forward, back, goToStop, buildMs: ms, renderer, frames };
   }).catch(err => { console.error(err); showFallback(); });
   loop();
