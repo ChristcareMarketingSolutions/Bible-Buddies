@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bible Buddies</string>
+    <string name="title_activity_main">Bible Buddies</string>
+    <string name="package_name">com.christcare.biblebuddies</string>
+    <string name="custom_url_scheme">com.christcare.biblebuddies</string>
+</resources>

@@ -4,6 +4,12 @@
    confetti/toast, text-to-speech. Loaded on every page.
    ===================================================================== */
 
+/* Site root (the folder holding index.html), so pages in sub-folders such as
+   bible-stories/ can link to the main pages correctly. */
+const BB_BASE = document.currentScript ? document.currentScript.src.replace(/js\/app\.js.*$/, "") : "";
+function bbUrl(path) { return /^(https?:|mailto:|#|\/)/.test(path) ? path : BB_BASE + path; }
+
+
 /* ---------- CONFIG (tweak feel here) ---------- */
 const CONFIG = {
   confettiCount: 60,
@@ -83,7 +89,7 @@ function initSearch() {
     const hits = index.filter(i => i.key.includes(term)).slice(0, 12);
     if (!hits.length) { results.innerHTML = `<p class="search-empty">🐑 Buddy couldn't find that. Try another word!</p>`; return; }
     results.innerHTML = hits.map(h => `
-      <a href="${h.url}">
+      <a href="${bbUrl(h.url)}">
         <span class="res-icon">${h.icon}</span>
         <span>${h.title}</span>
         <span class="res-kind">${h.kind}</span>
@@ -407,8 +413,25 @@ function wrap(g, text, max) {
   if (line) out.push(line); return out;
 }
 
+/* ---------- RUNNING INSIDE THE ANDROID APP ----------
+   The app (android-app/) shows these same pages. Capacitor adds window.Capacitor there. */
+const BB_APP = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform());
+function bbPlugin(name) { return BB_APP && window.Capacitor.Plugins ? window.Capacitor.Plugins[name] || null : null; }
+if (BB_APP) document.documentElement.classList.add("is-app");
+
 /* ---------- TEXT-TO-SPEECH ---------- */
+function bbStopSpeaking() {
+  const tts = bbPlugin("TextToSpeech");
+  if (tts) { tts.stop().catch(() => {}); return; }
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
 function speakText(text) {
+  const tts = bbPlugin("TextToSpeech");   // in the app: Android's own voice
+  if (tts) {
+    tts.stop().catch(() => {}).then(() => tts.speak({ text, lang: "en-US", rate: 0.95, pitch: 1.05 }))
+      .catch(() => bbToast("Read-aloud isn't available on this device."));
+    return;
+  }
   if (!("speechSynthesis" in window)) { bbToast("Read-aloud isn't available on this device."); return; }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
@@ -500,8 +523,34 @@ document.addEventListener("DOMContentLoaded", () => {
     try { fn(); } catch (err) { console.error(fn.name, err); }
   });
   initReveal();
-  // Register service worker for offline use (ignored when opened via file://)
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+  // Android app: the phone's back button closes an open box first, then goes back a page
+  const appPlugin = bbPlugin("App");
+  if (appPlugin) appPlugin.addListener("backButton", e => {
+    const open = document.querySelector(".modal.open");
+    if (open) { open.classList.remove("open"); return; }
+    const menu = document.querySelector(".nav-toggle[aria-expanded='true']");
+    if (menu) { menu.click(); return; }
+    bbStopSpeaking();
+    if (e && e.canGoBack) history.back(); else appPlugin.exitApp();
+  });
+  // Android app: a tapped Bible Buddies web link opens the same page inside the app
+  if (appPlugin) {
+    const openLink = url => {
+      const m = String(url || "").match(/\/Bible-Buddies\/?([^?#]*)([?#].*)?$/i);
+      if (!m) return;
+      // open each link only once (the launch link is reported again on every page)
+      try {
+        const done = JSON.parse(sessionStorage.getItem("bbLinks") || "[]");
+        if (done.includes(url)) return;
+        done.push(url); sessionStorage.setItem("bbLinks", JSON.stringify(done.slice(-20)));
+      } catch (e) {}
+      location.href = BB_BASE + (m[1] || "index.html") + (m[2] || "");
+    };
+    appPlugin.addListener("appUrlOpen", e => openLink(e && e.url));
+    if (appPlugin.getLaunchUrl) appPlugin.getLaunchUrl().then(r => r && openLink(r.url)).catch(() => {});
+  }
+  // Register service worker for offline use (not needed in the app, which carries its own copy)
+  if (!BB_APP && "serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register(BB_BASE + "service-worker.js").catch(() => {});
   }
 });

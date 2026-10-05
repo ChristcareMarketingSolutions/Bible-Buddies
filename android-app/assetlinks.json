@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.christcare.biblebuddies",
+      "sha256_cert_fingerprints": [
+        "82:D0:1F:39:DA:07:43:4A:C7:67:EF:24:96:9A:4A:F9:9E:F6:19:AD:E4:68:6D:1D:48:C0:0C:C8:FB:C3:C3:46"
+      ]
+    }
+  }
+]

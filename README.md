@@ -129,13 +129,29 @@ remove files listed in it.
 ## 8. Search engines (SEO) and sharing
 - Every page has its own title, description, share picture (`images/og-image.jpg`,
   `images/og-journey.jpg`) and structured data in the `<!-- SEO -->` block in its `<head>`.
-- `sitemap.xml` lists every page. If you add a page, add it there too.
+- **Bible Story Library** (`bible-stories/`): one page per story in `js/adventures.js`, so
+  each story can be found on Google. After editing `js/adventures.js`, run
+  `python3 tools/make-story-pages.py` to rebuild these pages and `sitemap.xml`.
+- `sitemap.xml` lists every page (rebuilt by the script above). If you add another main
+  page, add it to `main_pages` in `tools/make-story-pages.py`.
+- `robots.txt` must sit at the very top of the address, so it lives in the
+  `christcaremarketingsolutions.github.io` repository (which also holds the Android
+  app-link file). The copy in this folder is not read by search engines.
 - The site address used for sharing is `SITE_URL` near the top of the sharing code in
-  `js/app.js`. If you move to your own domain, change it there, in `sitemap.xml`,
-  `robots.txt` and the `<!-- SEO -->` blocks.
-- **Google Search Console** (free): go to <https://search.google.com/search-console>,
-  add the site address as a "URL prefix" property, verify it (choose "HTML tag" and send
-  the tag to your developer), then submit `sitemap.xml` under **Sitemaps**.
+  `js/app.js`. If you move to your own domain, change it there, in
+  `tools/make-story-pages.py`, `robots.txt` and the `<!-- SEO -->` blocks.
+- **Google Search Console** (free), to get indexed:
+  1. Go to <https://search.google.com/search-console> and click **Add property**.
+  2. Choose **URL prefix** and enter `https://christcaremarketingsolutions.github.io/`
+     (the top-level address covers Bible Buddies and every page under it).
+  3. Verify with **HTML file**: download the `google….html` file and add it to the
+     `christcaremarketingsolutions.github.io` repository (or send it to your developer).
+  4. Under **Sitemaps**, submit
+     `https://christcaremarketingsolutions.github.io/Bible-Buddies/sitemap.xml`.
+  5. Use **URL inspection → Request indexing** for the home page, the Story Library and
+     a few key pages. Google usually starts listing pages within a few days to weeks.
+- **Bing Webmaster Tools** (<https://www.bing.com/webmasters>) can import the site from
+  Search Console in one click; Bing also powers DuckDuckGo and Yahoo results.
 - Sharing: every page has a "Share Bible Buddies" button in the footer, the daily verse
   has "Share verse" (makes a picture card), and each Journey stop has a link of its own,
   e.g. `journey.html#stop-12`.

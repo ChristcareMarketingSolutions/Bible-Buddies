@@ -1,0 +1,11 @@
+{
+  "appId": "com.christcare.biblebuddies",
+  "appName": "Bible Buddies",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#FFFDF7"
+  },
+  "plugins": {
+    "SystemBars": { "insetsHandling": "css", "style": "LIGHT" }
+  }
+}

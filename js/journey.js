@@ -1224,7 +1224,7 @@
   function hideBox(keepReopen) {
     box.classList.remove("show"); box.hidden = true;
     reopen.hidden = !(keepReopen && (state.mode === "atStop" || state.mode === "done"));
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    if (typeof bbStopSpeaking === "function") bbStopSpeaking(); else if ("speechSynthesis" in window) speechSynthesis.cancel();
   }
   function showStop(i) {
     const s = stops[i], last = i === stops.length - 1;

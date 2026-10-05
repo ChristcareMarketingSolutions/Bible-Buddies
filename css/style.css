@@ -996,3 +996,19 @@ img, video, canvas { max-width: 100%; }
   .adv-story p { font-size: 1.1rem; }
 }
 @media (max-width: 899px) { .adv-side { margin-top: 0.4rem; } .adv-side .adv-box:first-child { margin-top: 0.9rem; } .featured.adventure { padding: 1.3rem 1.2rem; } }
+
+/* Bible Story Library (bible-stories/) */
+.sl-section { padding-top: 1.4rem; }
+.sl-crumbs { font-size: 0.92rem; color: var(--ink-soft); margin: 0 0 0.9rem; }
+.sl-crumbs a { color: var(--sky-deep); font-weight: 700; }
+.adventure h1 { margin: 0.2rem 0 0.3rem; color: var(--grape-deep); text-align: center; }
+.sl-pager { display: flex; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.4rem; font-weight: 800; }
+.sl-pager a { color: var(--sky-deep); }
+.sl-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.sl-card { display: flex; flex-direction: column; gap: 0.3rem; text-decoration: none; color: var(--ink); transition: transform var(--t-fast); }
+.sl-card:hover, .sl-card:focus-visible { transform: translateY(-3px); }
+.sl-card strong { font-family: var(--font-head); font-size: 1.15rem; color: var(--grape-deep); }
+.sl-card small { color: var(--sky-deep); font-weight: 800; }
+.sl-blurb { color: var(--ink-soft); font-size: 0.95rem; }
+.sl-emoji { font-size: 2.2rem; }
+.sl-library-link { text-align: center; margin: 0 0 1.4rem; font-weight: 800; }
