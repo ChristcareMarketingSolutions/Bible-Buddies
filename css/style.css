@@ -978,3 +978,10 @@ img, video, canvas { max-width: 100%; }
 .adv-more { text-align: center; margin: 1.2rem 0 0; font-weight: 800; }
 .adv-more a { color: var(--sky-deep); white-space: nowrap; }
 @media (max-width: 640px) { .adv-story p { font-size: 1.02rem; } .adv-choice { flex: 1 1 100%; } }
+
+/* What will you discover today? */
+.disc-card { display: flex; flex-direction: column; }
+.disc-card .disc-main { font-family: var(--font-head); font-weight: 700; font-size: 1.15rem; color: var(--grape-deep); margin: 0.2rem 0; }
+.disc-card .disc-sub { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5; margin: 0 0 1rem; padding-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.disc-card .btn { margin-top: auto; }
+#memory, #who-am-i, #scramble, #quiz, #sling, #harp, #ask-buddy { scroll-margin-top: 110px; }

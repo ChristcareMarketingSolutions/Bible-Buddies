@@ -151,19 +151,45 @@ function initDailyAdventure() {
   $("[data-listen]").addEventListener("click", () => speakText(a.title + ". " + a.story.join(" ")));
 }
 
-/* ---------- WHAT WILL YOU DISCOVER TODAY ---------- */
+/* ---------- WHAT WILL YOU DISCOVER TODAY ----------
+   Everything here follows today's date: the memory verse is the same as
+   "Today's Memory Verse", and the story and game change each day. */
+const DISCOVER_GAMES = [
+  { id: "memory",    emoji: "🧠", name: "Bible Memory Match", desc: "Match each Bible hero with their picture." },
+  { id: "who-am-i",  emoji: "❓", name: "Who Am I?",          desc: "Read the clues and guess the Bible character." },
+  { id: "scramble",  emoji: "🔤", name: "Word Scramble",      desc: "Unscramble the Bible word." },
+  { id: "quiz",      emoji: "⭐", name: "Bible Quiz",         desc: "Answer the questions and earn stars." },
+  { id: "sling",     emoji: "🪨", name: "David's Sling",      desc: "Pop 50 worry balloons with David's sling." },
+  { id: "harp",      emoji: "🎵", name: "David's Harp",       desc: "Make music like David and copy Buddy's tune." }
+];
 function initDiscover() {
   const box = document.querySelector("[data-discover]");
   if (!box) return;
-  const draw = () => {
-    const story = STORIES[Math.floor(Math.random() * STORIES.length)];
-    const verse = VERSES[Math.floor(Math.random() * VERSES.length)];
-    box.querySelector("[data-d-story]").textContent = story.title;
-    box.querySelector("[data-d-verse]").textContent = verse.ref;
+  const $ = sel => box.querySelector(sel);
+  const fill = () => {
+    const day = dayNumber();
+    // story: a different one each day, opening its comic storybook when there is one
+    const story = STORIES[day % STORIES.length];
+    $("[data-d-story-emoji]").textContent = story.emoji;
+    $("[data-d-story]").textContent = story.title;
+    $("[data-d-story-desc]").textContent = story.description;
+    const sl = $("[data-d-story-link]");
+    const hasBook = typeof driveId === "function" && driveId(story.book);
+    sl.href = hasBook ? "story.html?s=" + encodeURIComponent(story.id) : "stories.html";
+    sl.textContent = hasBook ? "📖 Read Comic Story" : "Read";
+    // game of the day
+    const g = DISCOVER_GAMES[day % DISCOVER_GAMES.length];
+    $("[data-d-game-emoji]").textContent = g.emoji;
+    $("[data-d-game]").textContent = g.name;
+    $("[data-d-game-desc]").textContent = g.desc;
+    $("[data-d-game-link]").href = "games.html#" + g.id;
+    // memory verse: exactly today's verse
+    const v = verseFor(new Date());
+    $("[data-d-verse]").textContent = v.ref;
+    $("[data-d-verse-text]").textContent = quoteVerse(v.text);
   };
-  draw();
-  const btn = document.querySelector("[data-discover-btn]");
-  btn && btn.addEventListener("click", draw);
+  fill();
+  onNewDay(fill);
 }
 
 /* ---------- DAILY MEMORY VERSE (home + verses page) ---------- */
