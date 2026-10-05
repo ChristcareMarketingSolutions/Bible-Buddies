@@ -1012,3 +1012,21 @@ img, video, canvas { max-width: 100%; }
 .sl-blurb { color: var(--ink-soft); font-size: 0.95rem; }
 .sl-emoji { font-size: 2.2rem; }
 .sl-library-link { text-align: center; margin: 0 0 1.4rem; font-weight: 800; }
+
+/* SEO text blocks and FAQ (helpful text for parents, teachers and search engines) */
+.seo-section { padding-top: 1rem; }
+.seo-blurb { max-width: 820px; margin: 1.5rem auto 0; color: var(--ink-soft); line-height: 1.7; }
+.seo-blurb h2 { font-size: 1.35rem; color: var(--grape-deep); margin: 1.4rem 0 0.5rem; }
+.seo-blurb a { color: var(--sky-deep); font-weight: 700; }
+.faq { display: grid; gap: 0.5rem; }
+.faq-item { background: var(--white); border: 2px solid var(--cloud, #E3F4FC); border-radius: var(--radius); padding: 0.7rem 1rem; }
+.faq-item summary { cursor: pointer; font-weight: 800; color: var(--ink); }
+.faq-item p { margin: 0.5rem 0 0; }
+.lesson-list { columns: 2 260px; padding-left: 1.4rem; margin-top: 1rem; }
+.lesson-list li { margin: 0 0 0.35rem; break-inside: avoid; }
+.sl-aka { text-align: center; font-size: 0.95rem; color: var(--ink-soft); margin: -0.6rem 0 1rem; }
+.sl-lesson { background: var(--white); border: var(--border); border-radius: var(--radius-lg); padding: 1.3rem 1.6rem; margin-top: 1.4rem; line-height: 1.6; }
+.sl-lesson h2 { margin-top: 0; color: var(--grape-deep); font-size: 1.3rem; }
+.sl-lesson a { color: var(--sky-deep); font-weight: 700; }
+.sl-lesson ol { padding-left: 1.5rem; margin: 0.4rem 0 0; }
+.sl-lesson li { margin-bottom: 0.3rem; }
