@@ -407,8 +407,25 @@ function wrap(g, text, max) {
   if (line) out.push(line); return out;
 }
 
+/* ---------- RUNNING INSIDE THE ANDROID APP ----------
+   The app (android-app/) shows these same pages. Capacitor adds window.Capacitor there. */
+const BB_APP = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform());
+function bbPlugin(name) { return BB_APP && window.Capacitor.Plugins ? window.Capacitor.Plugins[name] || null : null; }
+if (BB_APP) document.documentElement.classList.add("is-app");
+
 /* ---------- TEXT-TO-SPEECH ---------- */
+function bbStopSpeaking() {
+  const tts = bbPlugin("TextToSpeech");
+  if (tts) { tts.stop().catch(() => {}); return; }
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
 function speakText(text) {
+  const tts = bbPlugin("TextToSpeech");   // in the app: Android's own voice
+  if (tts) {
+    tts.stop().catch(() => {}).then(() => tts.speak({ text, lang: "en-US", rate: 0.95, pitch: 1.05 }))
+      .catch(() => bbToast("Read-aloud isn't available on this device."));
+    return;
+  }
   if (!("speechSynthesis" in window)) { bbToast("Read-aloud isn't available on this device."); return; }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
@@ -500,8 +517,18 @@ document.addEventListener("DOMContentLoaded", () => {
     try { fn(); } catch (err) { console.error(fn.name, err); }
   });
   initReveal();
-  // Register service worker for offline use (ignored when opened via file://)
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  // Android app: the phone's back button closes an open box first, then goes back a page
+  const appPlugin = bbPlugin("App");
+  if (appPlugin) appPlugin.addListener("backButton", e => {
+    const open = document.querySelector(".modal.open");
+    if (open) { open.classList.remove("open"); return; }
+    const menu = document.querySelector(".nav-toggle[aria-expanded='true']");
+    if (menu) { menu.click(); return; }
+    bbStopSpeaking();
+    if (e && e.canGoBack) history.back(); else appPlugin.exitApp();
+  });
+  // Register service worker for offline use (not needed in the app, which carries its own copy)
+  if (!BB_APP && "serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});
   }
 });
