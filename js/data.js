@@ -836,10 +836,21 @@ const PLACES = [
 ];
 
 /* ---------- MEET JESUS JOURNEY ---------- */
+/* The 12 steps on the Meet Jesus page. "stop" is the matching stop number in the
+   3D walk (js/journey-stops.js); tapping a step starts the walk there. */
 const JESUS_JOURNEY = [
-  "Jesus' Birth", "His Childhood", "Baptism", "Calling His Disciples",
-  "His Teachings", "His Miracles", "His Parables", "His Friends",
-  "Jerusalem", "Crucifixion", "Resurrection", "The Great Commission"
+  { title: "Jesus' Birth", emoji: "⭐", text: "Jesus was born in Bethlehem and laid in a manger. Angels told the shepherds the good news.", ref: "Luke 2:1–20", stop: 2 },
+  { title: "His Childhood", emoji: "🏠", text: "Jesus grew up in Nazareth with Mary and Joseph, growing in wisdom and strength.", ref: "Luke 2:39–52", stop: 5 },
+  { title: "Baptism", emoji: "🕊️", text: "John baptized Jesus in the Jordan River, and God said, \"This is my beloved Son.\"", ref: "Matthew 3:13–17", stop: 7 },
+  { title: "Calling His Disciples", emoji: "🎣", text: "Jesus called fishermen by the Sea of Galilee: \"Come, follow me!\"", ref: "Matthew 4:18–22", stop: 9 },
+  { title: "His Teachings", emoji: "📖", text: "Jesus taught people about God's love and healed many who were sick.", ref: "Mark 1:21–34", stop: 14 },
+  { title: "His Miracles", emoji: "🌊", text: "Jesus calmed a storm, fed 5,000 people and walked on water.", ref: "Mark 4:35–41", stop: 15 },
+  { title: "His Parables", emoji: "🌱", text: "Jesus told stories, called parables, to teach about God's kingdom.", ref: "Matthew 21:23–46", stop: 26 },
+  { title: "His Friends", emoji: "❤️", text: "Jesus loved His friends Martha, Mary and Lazarus, and ate dinner at their home.", ref: "John 12:1–8", stop: 24 },
+  { title: "Jerusalem", emoji: "🌿", text: "Crowds waved palm branches and shouted \"Hosanna!\" as Jesus rode into Jerusalem.", ref: "Matthew 21:1–11", stop: 25 },
+  { title: "Crucifixion", emoji: "✝️", text: "Jesus died on the cross to take away our sins.", ref: "Luke 23:32–49", stop: 30 },
+  { title: "Resurrection", emoji: "🌅", text: "On the third day the tomb was empty. Jesus is alive!", ref: "Matthew 28:1–10", stop: 32 },
+  { title: "The Great Commission", emoji: "⛰️", text: "Jesus told His friends to go and tell everyone the good news about Him.", ref: "Matthew 28:16–20", stop: 36 }
 ];
 
 /* ---------- WHAT DID JESUS TEACH ---------- */
@@ -1010,7 +1021,7 @@ function buildSearchIndex() {
   CHARACTERS.forEach(c => idx.push({ icon: "👤", title: c.name, kind: "Bible Character", url: "explorer.html", key: (c.name + " " + c.who).toLowerCase() }));
   PLACES.forEach(p => idx.push({ icon: "🗺️", title: p.name, kind: "Bible Place", url: "explorer.html", key: (p.name + " " + p.note).toLowerCase() }));
   VERSES.forEach(v => idx.push({ icon: "⭐", title: v.ref, kind: "Memory Verse", url: "memory-verses.html", key: (v.ref + " " + v.text).toLowerCase() }));
-  idx.push({ icon: "🚶", title: "Journey with Jesus", kind: "3D Walk", url: "journey.html", key: "journey with jesus walk 3d map bethlehem jordan river baptism mountain sermon martha mary bethany" });
+  idx.push({ icon: "🚶", title: "Journey with Jesus", kind: "3D Walk", url: "meet-jesus.html#walk", key: "journey with jesus walk 3d map bethlehem jordan river baptism mountain sermon martha mary bethany" });
   idx.push({ icon: "🎮", title: "Bible Memory Match", kind: "Game", url: "games.html", key: "memory match game cards pairs" });
   idx.push({ icon: "🎮", title: "Who Am I?", kind: "Game", url: "games.html", key: "who am i clue guess character game" });
   idx.push({ icon: "🎮", title: "Word Scramble", kind: "Game", url: "games.html", key: "word scramble letters game" });

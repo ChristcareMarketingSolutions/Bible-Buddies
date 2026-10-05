@@ -1237,7 +1237,7 @@
       onExtra: () => bbShare({ url: stopUrl(i), title: `${s.place}: ${s.title} | Journey with Jesus`, text: `Walk with Jesus to ${s.place} (${s.ref}) in this free 3D Bible walk for kids!` })
     });
   }
-  function stopUrl(i) { return (typeof SITE_URL !== "undefined" ? SITE_URL : location.href.split("#")[0].replace(/journey\.html$/, "")) + "journey.html#stop-" + (i + 1); }
+  function stopUrl(i) { return (typeof SITE_URL !== "undefined" ? SITE_URL : location.href.split("#")[0].replace(/[^/]*$/, "")) + "meet-jesus.html#stop-" + (i + 1); }
   function showIntro() {
     setStatus("Ready to walk");
     const cont = saved > 0 && saved < stops.length;
@@ -1303,7 +1303,7 @@
       speak: "You finished the journey! You walked with Jesus from His birth all the way to the first Christians sharing the good news. Jesus Christ is the same yesterday, today, and forever.",
       primary: "Walk again ↺",
       extra: typeof bbShare === "function" ? `<button type="button" class="btn btn-grape" data-jw-extra>📤 Share the journey</button>` : "",
-      onExtra: () => bbShare({ url: stopUrl(0).replace(/#stop-1$/, ""), title: "Journey with Jesus: a free 3D Bible walk for kids", text: `I walked with Jesus through ${stops.length} places from the Bible! Try this free 3D walk for kids:` })
+      onExtra: () => bbShare({ url: stopUrl(0).replace(/#stop-1$/, "#walk"), title: "Journey with Jesus: a free 3D Bible walk for kids", text: `I walked with Jesus through ${stops.length} places from the Bible! Try this free 3D walk for kids:` })
     });
     updateButtons(); updateProgress();
     if (typeof bbAddStars === "function") bbAddStars(2, "journey-complete");

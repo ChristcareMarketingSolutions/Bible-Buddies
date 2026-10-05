@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Journey with Jesus: 3D Bible Walk for Kids | Bible Buddies</title>
-  <meta name="description" content="Walk with Jesus in a free cartoon 3D world for kids. Visit 40 places from His life, from Bethlehem to the empty tomb, with a Bible story at every stop.">
+  <!-- The Journey with Jesus now lives on the Meet Jesus page. This page only forwards
+       old links there, keeping any "#stop-N" so shared stop links still work. -->
+  <script>location.replace("meet-jesus.html" + (/^#stop-\d+$/.test(location.hash) ? location.hash : "#walk"));</script>
+  <meta http-equiv="refresh" content="0; url=meet-jesus.html#walk">
   <!-- SEO -->
-  <meta name="robots" content="index, follow, max-image-preview:large">
-  <link rel="canonical" href="https://christcaremarketingsolutions.github.io/Bible-Buddies/journey.html">
+  <meta name="robots" content="noindex, follow">
+  <link rel="canonical" href="https://christcaremarketingsolutions.github.io/Bible-Buddies/meet-jesus.html">
   <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
   <link rel="apple-touch-icon" href="images/icon-192.png">
   <meta property="og:site_name" content="Bible Buddies">
@@ -25,131 +27,10 @@
   <meta name="twitter:title" content="Journey with Jesus: 3D Bible Walk for Kids">
   <meta name="twitter:description" content="Walk with Jesus in a free cartoon 3D world for kids. Visit 40 places from His life, from Bethlehem to the empty tomb, with a Bible story at every stop.">
   <meta name="twitter:image" content="https://christcaremarketingsolutions.github.io/Bible-Buddies/images/og-journey.jpg">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://christcaremarketingsolutions.github.io/Bible-Buddies/"}, {"@type": "ListItem", "position": 2, "name": "Journey with Jesus", "item": "https://christcaremarketingsolutions.github.io/Bible-Buddies/journey.html"}]}</script>
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Journey with Jesus: 3D Bible Walk for Kids", "description": "Walk with Jesus in a free cartoon 3D world for kids. Visit 40 places from His life, from Bethlehem to the empty tomb, with a Bible story at every stop.", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/journey.html", "image": "https://christcaremarketingsolutions.github.io/Bible-Buddies/images/og-journey.jpg", "inLanguage": "en", "isAccessibleForFree": true, "audience": {"@type": "PeopleAudience", "suggestedMinAge": 4, "suggestedMaxAge": 11}, "educationalLevel": "Children aged 4 to 11", "learningResourceType": "Interactive 3D walk", "about": {"@type": "Thing", "name": "The Bible"}, "publisher": {"@type": "Organization", "name": "Bible Buddies", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/"}}</script>
   <!-- /SEO -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4CB4E7">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100502">
+  <style>body{font-family:sans-serif;text-align:center;padding:3rem 1rem;color:#41383B}a{color:#2E93C9;font-weight:bold}</style>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="logo" href="index.html" aria-label="Bible Buddies home">
-        <img class="logo-img" src="images/logo.png" alt="Bible Buddies, Learn, Play, Discover Jesus" width="480" height="320">
-      </a>
-      <nav class="main-nav" id="main-nav" aria-label="Main">
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="stories.html">Stories</a></li>
-          <li><a href="games.html">Games</a></li>
-          <li><a href="colouring.html">Colour &amp; Create</a></li>
-          <li><a href="explorer.html">Bible Explorer</a></li>
-          <li><a href="memory-verses.html">Memory Verses</a></li>
-          <li><a href="meet-jesus.html" aria-current="page">Meet Jesus</a></li>
-          <li><a href="teachers.html">Teacher Corner</a></li>
-          <li><a href="about.html">About</a></li>
-          <li class="nav-extra"><a href="contact.html">Contact</a></li>
-        </ul>
-      </nav>
-      <div class="header-tools">
-        <span class="star-counter" title="Your stars">⭐ <span data-star-count>0</span></span>
-        <button class="icon-btn" data-open-search aria-label="Search">🔍</button>
-        <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
-      </div>
-    </div>
-  </header>
-  <div class="nav-backdrop"></div>
-  <main id="main">
-    <section class="section center jw-hero">
-      <div class="container">
-        <div style="font-size:2.1rem" aria-hidden="true">🚶‍♂️</div>
-        <h1 style="color:#fff">Journey with Jesus</h1>
-        <p style="font-size:1.15rem;max-width:46ch;margin:.4rem auto 0">Walk the roads where Jesus walked, from His birth to the first Christians. Press <strong>Forward</strong> and visit 40 places from the Bible, one stop at a time.</p>
-      </div>
-    </section>
-
-    <section class="section jw-section"><div class="container">
-      <div class="jw-stage" data-journey>
-        <div class="jw-canvas" data-jw-canvas tabindex="0" aria-label="3D walk. Use the Forward and Back buttons, or the arrow keys: up to walk, left and right to look around."></div>
-        <div class="jw-fade" data-jw-fade aria-hidden="true"><p data-jw-fade-text></p></div>
-        <div class="jw-top">
-          <p class="jw-chip jw-status" data-jw-status role="status" aria-live="polite">Loading the journey…</p>
-          <div class="jw-top-btns">
-            <button type="button" class="jw-chip" data-jw-stops aria-label="Show all stops">☰ Stops</button>
-            <button type="button" class="jw-chip" data-jw-fullscreen>⛶ Full screen</button>
-          </div>
-        </div>
-        <p class="jw-hint" data-jw-hint aria-hidden="true">👆 Drag to look around</p>
-        <div class="jw-box" data-jw-box role="dialog" aria-labelledby="jw-box-title" hidden>
-          <button type="button" class="jw-close" data-jw-close aria-label="Close the story and look around">✕</button>
-          <div class="jw-box-body" data-jw-box-body></div>
-        </div>
-        <div class="jw-panel" data-jw-panel role="dialog" aria-label="All stops" hidden>
-          <div class="jw-panel-head"><strong>All stops</strong><button type="button" class="jw-close" data-jw-panel-close aria-label="Close the list of stops">✕</button></div>
-          <ol class="jw-panel-list" data-jw-panel-list></ol>
-        </div>
-        <button type="button" class="jw-chip jw-reopen" data-jw-reopen hidden>📖 Read the story</button>
-        <div class="jw-bottom">
-          <div class="jw-track">
-            <div class="jw-line"></div>
-            <div class="jw-ticks" data-jw-ticks></div>
-            <span class="jw-walker" data-jw-walker aria-hidden="true">🚶</span>
-          </div>
-          <div class="jw-controls">
-            <button type="button" class="btn btn-ghost" data-jw-back>◀ Back</button>
-            <button type="button" class="btn btn-primary btn-lg" data-jw-forward>Forward ▶</button>
-          </div>
-        </div>
-      </div>
-      <noscript><p class="notice">Please turn on JavaScript to walk the Journey with Jesus.</p></noscript>
-    </div></section>
-
-    <section class="section" style="background:var(--cloud)"><div class="container">
-      <div class="section-head"><h2>Stops on this journey</h2><p>Tap any stop to jump straight there.</p></div>
-      <div data-jw-cards></div>
-    </div></section>
-  </main>
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="logo-title">✝️ Bible Buddies</div>
-          <p>Learn • Play • Discover Jesus</p>
-          <p style="margin-top:.6rem;opacity:.85">🐑 Created to help children discover the Bible and learn about Jesus.</p>
-        </div>
-        <div class="footer-links"><strong>Explore</strong>
-          <a href="stories.html">Stories</a><a href="games.html">Games</a>
-          <a href="colouring.html">Colouring</a><a href="explorer.html">Bible Explorer</a>
-          <a href="memory-verses.html">Memory Verses</a>
-        </div>
-        <div class="footer-links"><strong>More</strong>
-          <a href="meet-jesus.html">Meet Jesus</a><a href="teachers.html">Teacher Corner</a>
-          <a href="about.html">About</a><a href="contact.html">Contact</a>
-        </div>
-      </div>
-      <div class="footer-bottom">© <span id="year"></span> Bible Buddies · Made with love for young explorers </div>
-    </div>
-  </footer>
-
-  <div class="modal" id="search-modal" role="dialog" aria-modal="true" aria-label="Search Bible Buddies">
-    <div class="modal-box">
-      <button class="modal-close" aria-label="Close search">✕</button>
-      <h2>🔍 Search</h2>
-      <input type="search" class="search-input" placeholder="Search stories, characters, verses…" aria-label="Search">
-      <div class="search-results"></div>
-    </div>
-  </div>
-  <script src="js/data.js?v=2026100502"></script>
-  <script src="js/progress.js?v=2026100502"></script>
-  <script src="js/app.js?v=2026100502"></script>
-  <script src="js/vendor/three.min.js?v=2026100502"></script>
-  <script src="js/journey-stops.js?v=2026100502"></script>
-  <script src="js/journey.js?v=2026100502"></script>
-  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <p>🚶 The Journey with Jesus has moved to the <a href="meet-jesus.html#walk">Meet Jesus</a> page.</p>
 </body>
 </html>

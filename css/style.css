@@ -914,3 +914,27 @@ img, video, canvas { max-width: 100%; }
 .vm-card .vm-ref { font-weight: 800; color: var(--ink); }
 .vm-card .vm-explain { color: var(--ink-soft); }
 .vm-today { outline: 4px solid var(--sun, #FFC93C); outline-offset: 2px; }
+
+/* Meet Jesus: the 12 steps of His life (each one opens the 3D walk) */
+.mj-steps { display: grid; gap: 0.9rem; }
+@media (min-width: 760px) { .mj-steps { grid-template-columns: 1fr 1fr; } }
+.mj-step {
+  display: grid; grid-template-columns: auto auto 1fr; grid-template-areas: "num emo body" "num emo go";
+  gap: 0.2rem 0.8rem; align-items: center; text-align: left; width: 100%;
+  font: inherit; color: var(--ink); background: var(--white); cursor: pointer;
+  border: var(--border); border-radius: var(--radius); padding: 0.9rem 1.1rem; box-shadow: var(--shadow-soft);
+  transition: transform var(--t-fast, .15s), box-shadow var(--t-fast, .15s);
+}
+.mj-step:hover, .mj-step:focus-visible { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.mj-step .step-num {
+  grid-area: num; width: 42px; height: 42px; border-radius: 50%; background: var(--grape); color: var(--white);
+  display: grid; place-items: center; font-family: var(--font-head); font-size: 1.2rem;
+}
+.mj-step-e { grid-area: emo; font-size: 2rem; }
+.mj-step-body { grid-area: body; display: flex; flex-direction: column; gap: 0.15rem; }
+.mj-step-body strong { font-family: var(--font-head); font-size: 1.15rem; color: var(--grape-deep); }
+.mj-step-body small { color: var(--ink-soft); font-weight: 700; }
+.mj-step-go { grid-area: go; justify-self: start; font-weight: 800; font-size: 0.9rem; color: var(--sky-deep); }
+#his-journey, #walk, #stops { scroll-margin-top: 120px; }
+#walk .jw-stage { scroll-margin-top: 124px; }
+@media (max-width: 700px) { #his-journey, #walk, #stops, #walk .jw-stage { scroll-margin-top: 90px; } }
