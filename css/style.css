@@ -1030,3 +1030,4 @@ img, video, canvas { max-width: 100%; }
 .sl-lesson a { color: var(--sky-deep); font-weight: 700; }
 .sl-lesson ol { padding-left: 1.5rem; margin: 0.4rem 0 0; }
 .sl-lesson li { margin-bottom: 0.3rem; }
+.wj-cta { text-align: center; margin: 0.4rem 0 1.2rem; }
