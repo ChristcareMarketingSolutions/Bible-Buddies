@@ -4,7 +4,7 @@
    offline. Images load instantly from the cache and refresh in the background.
    You no longer need to bump CACHE_VERSION on every update; only bump it if
    you rename or remove files in the ASSETS list below. */
-const CACHE_VERSION = "bible-buddies-v8";
+const CACHE_VERSION = "bible-buddies-v9";
 const ASSETS = [
   "index.html", "stories.html", "comics.html", "games.html", "colouring.html",
   "explorer.html", "memory-verses.html", "meet-jesus.html", "teachers.html",
