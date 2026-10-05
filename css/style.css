@@ -954,3 +954,27 @@ img, video, canvas { max-width: 100%; }
 .sr-actions { justify-content: flex-end; margin: 0 0 0.8rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
 .sr-actions[hidden] { display: none; }
 @media (max-width: 640px) { .sr-frame { height: 75vh; border-radius: var(--radius); } .sr-emoji { font-size: 2rem; } }
+
+/* Today's Bible Adventure (home page) */
+.featured.adventure { animation: none; text-align: left; }
+.adventure .tag, .adventure .adv-emoji, .adventure h2, .adventure .adv-ref { text-align: center; }
+.adventure > .tag { display: table; margin-inline: auto; margin-bottom: 0.8rem; }
+.adv-emoji { font-size: 3rem; line-height: 1.1; }
+.adventure h2 { margin: 0.2rem 0 0.3rem; color: var(--grape-deep); }
+.adv-ref { font-weight: 800; color: var(--sky-deep); margin: 0 0 1rem; }
+.adv-listen { font: inherit; font-size: 0.9rem; margin-left: 0.4rem; padding: 0.2rem 0.7rem; border-radius: var(--radius-pill); border: 2px solid var(--sky-deep); background: var(--white); color: var(--sky-deep); cursor: pointer; }
+.adv-story p { font-size: 1.08rem; line-height: 1.7; margin: 0 0 0.8rem; }
+.adv-box { border-radius: var(--radius); padding: 0.9rem 1.1rem; margin-top: 0.9rem; line-height: 1.55; }
+.adv-fact { background: var(--sunLight, #FFF3CC); border: 2px solid var(--sun); }
+.adv-quiz { background: #EFE9FA; border: 2px solid var(--grape); }
+.adv-quiz p { margin: 0.3rem 0 0.6rem; font-weight: 700; }
+.adv-challenge { background: #E3F4FC; border: 2px solid var(--sky); }
+.adv-choices { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.adv-choice { font: inherit; font-weight: 700; padding: 0.55rem 1rem; border-radius: var(--radius-pill); border: 2px solid var(--ink); background: var(--white); color: var(--ink); cursor: pointer; }
+.adv-choice:hover:not(:disabled) { background: var(--cloud); }
+.adv-choice.right { background: var(--meadow, #63C67A); color: #fff; border-color: var(--meadow, #63C67A); }
+.adv-choice.wrong { opacity: 0.45; text-decoration: line-through; }
+.adv-result { min-height: 1.4em; margin: 0.5rem 0 0; font-weight: 800; }
+.adv-more { text-align: center; margin: 1.2rem 0 0; font-weight: 800; }
+.adv-more a { color: var(--sky-deep); white-space: nowrap; }
+@media (max-width: 640px) { .adv-story p { font-size: 1.02rem; } .adv-choice { flex: 1 1 100%; } }

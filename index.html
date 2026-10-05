@@ -36,7 +36,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100505">
+  <link rel="stylesheet" href="css/style.css?v=2026100506">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -132,18 +132,23 @@
 
     <!-- ===== TODAY'S BIBLE ADVENTURE ===== -->
     <section class="section" id="adventure">
-      <div class="container" style="max-width:680px">
-        <div class="featured reveal" data-daily-adventure>
+      <div class="container" style="max-width:760px">
+        <article class="featured adventure reveal" data-daily-adventure>
           <span class="tag">Today's Bible Adventure</span>
-          <div style="font-size:3rem" data-emoji>🌊</div>
-          <h2 data-title>Jesus Calms the Storm</h2>
-          <p data-desc>Loading today's story…</p>
-          <div class="btn-row">
-            <a class="btn btn-sky" href="stories.html">Read story</a>
-            <a class="btn btn-ghost" href="comics.html">View comic</a>
-            <a class="btn btn-meadow" href="games.html">Play game</a>
+          <div class="adv-emoji" data-emoji aria-hidden="true">📖</div>
+          <h2 data-title>Loading today's adventure…</h2>
+          <p class="adv-ref"><span data-ref></span> <button type="button" class="adv-listen" data-listen>🔊 Listen</button></p>
+          <div class="adv-story" data-story></div>
+          <div class="adv-box adv-fact"><strong>💡 Did you know?</strong> <span data-fact></span></div>
+          <div class="adv-box adv-quiz">
+            <strong>❓ Quick question</strong>
+            <p data-q></p>
+            <div class="adv-choices" data-choices></div>
+            <p class="adv-result" data-result aria-live="polite"></p>
           </div>
-        </div>
+          <div class="adv-box adv-challenge"><strong>🎯 Today's challenge</strong> <span data-challenge></span></div>
+          <p class="adv-more">Want more? <a href="stories.html">📚 More Bible stories</a> · <a href="games.html">🎮 Play Bible games</a></p>
+        </article>
       </div>
     </section>
 
@@ -283,9 +288,10 @@
     </div>
   </div>
 
-  <script src="js/data.js?v=2026100505"></script>
-  <script src="js/progress.js?v=2026100505"></script>
-  <script src="js/app.js?v=2026100505"></script>
+  <script src="js/data.js?v=2026100506"></script>
+  <script src="js/progress.js?v=2026100506"></script>
+  <script src="js/adventures.js?v=2026100506"></script>
+  <script src="js/app.js?v=2026100506"></script>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>

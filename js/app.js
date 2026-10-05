@@ -109,19 +109,46 @@ function initSearch() {
   });
 }
 
-/* ---------- TODAY'S BIBLE ADVENTURE ---------- */
+/* ---------- TODAY'S BIBLE ADVENTURE (home page; stories in js/adventures.js) ---------- */
 function initDailyAdventure() {
   const box = document.querySelector("[data-daily-adventure]");
-  if (!box) return;
+  if (!box || typeof ADVENTURES === "undefined" || !ADVENTURES.length) return;
+  const $ = sel => box.querySelector(sel);
+  let a;
   const fill = () => {
-    const s = STORIES[dayIndex(STORIES.length)];
-    box.querySelector("[data-title]").textContent = s.title;
-    box.querySelector("[data-desc]").textContent = s.description;
-    const em = box.querySelector("[data-emoji]");
-    if (em) em.textContent = s.emoji;
+    const day = dayNumber();
+    a = ADVENTURES[day % ADVENTURES.length];
+    $("[data-emoji]").textContent = a.emoji;
+    $("[data-title]").textContent = a.title;
+    $("[data-ref]").textContent = "📖 " + a.ref;
+    const story = $("[data-story]"); story.textContent = "";
+    a.story.forEach(t => { const p = document.createElement("p"); p.textContent = t; story.append(p); });
+    $("[data-fact]").textContent = a.fact;
+    $("[data-challenge]").textContent = a.challenge;
+    $("[data-q]").textContent = a.question.q;
+    const res = $("[data-result]"); res.textContent = "";
+    const wrap = $("[data-choices]"); wrap.textContent = "";
+    a.question.choices.forEach((c, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "adv-choice"; b.textContent = c;
+      b.addEventListener("click", () => {
+        if (i === a.question.answer) {
+          wrap.querySelectorAll("button").forEach(x => { x.disabled = true; });
+          b.classList.add("right");
+          res.textContent = "✅ Yes, that's right! Well done!";
+          if (typeof bbAddStars === "function") bbAddStars(1, "adventure-" + day);
+          if (typeof bbConfetti === "function") bbConfetti();
+        } else {
+          b.classList.add("wrong"); b.disabled = true;
+          res.textContent = "Not quite. Have another look at the story and try again!";
+        }
+      });
+      wrap.append(b);
+    });
   };
   fill();
   onNewDay(fill);
+  $("[data-listen]").addEventListener("click", () => speakText(a.title + ". " + a.story.join(" ")));
 }
 
 /* ---------- WHAT WILL YOU DISCOVER TODAY ---------- */
