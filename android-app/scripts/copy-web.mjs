@@ -9,7 +9,7 @@ const site = join(here, "..", "..");
 const out = join(here, "..", "www");
 
 // Not needed inside the app (tools, docs and large unused media).
-const SKIP_TOP = new Set(["android-app", ".github", ".git", "google-apps-script", "README.md",
+const SKIP_TOP = new Set(["android-app", ".github", ".git", "google-apps-script", "tools", "README.md",
   "sitemap.xml", "robots.txt", "node_modules"]);
 const SKIP_FILE = /\.(mp4|webm|psd|md)$/i;
 const SKIP_NAMES = new Set(["Moses.gif", "Moses.png", "images (1).png"]);

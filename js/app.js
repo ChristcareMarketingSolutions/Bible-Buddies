@@ -4,6 +4,12 @@
    confetti/toast, text-to-speech. Loaded on every page.
    ===================================================================== */
 
+/* Site root (the folder holding index.html), so pages in sub-folders such as
+   bible-stories/ can link to the main pages correctly. */
+const BB_BASE = document.currentScript ? document.currentScript.src.replace(/js\/app\.js.*$/, "") : "";
+function bbUrl(path) { return /^(https?:|mailto:|#|\/)/.test(path) ? path : BB_BASE + path; }
+
+
 /* ---------- CONFIG (tweak feel here) ---------- */
 const CONFIG = {
   confettiCount: 60,
@@ -83,7 +89,7 @@ function initSearch() {
     const hits = index.filter(i => i.key.includes(term)).slice(0, 12);
     if (!hits.length) { results.innerHTML = `<p class="search-empty">🐑 Buddy couldn't find that. Try another word!</p>`; return; }
     results.innerHTML = hits.map(h => `
-      <a href="${h.url}">
+      <a href="${bbUrl(h.url)}">
         <span class="res-icon">${h.icon}</span>
         <span>${h.title}</span>
         <span class="res-kind">${h.kind}</span>
@@ -538,13 +544,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (done.includes(url)) return;
         done.push(url); sessionStorage.setItem("bbLinks", JSON.stringify(done.slice(-20)));
       } catch (e) {}
-      location.href = (m[1] || "index.html") + (m[2] || "");
+      location.href = BB_BASE + (m[1] || "index.html") + (m[2] || "");
     };
     appPlugin.addListener("appUrlOpen", e => openLink(e && e.url));
     if (appPlugin.getLaunchUrl) appPlugin.getLaunchUrl().then(r => r && openLink(r.url)).catch(() => {});
   }
   // Register service worker for offline use (not needed in the app, which carries its own copy)
   if (!BB_APP && "serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    navigator.serviceWorker.register(BB_BASE + "service-worker.js").catch(() => {});
   }
 });
