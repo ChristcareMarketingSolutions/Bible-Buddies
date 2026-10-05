@@ -7,38 +7,41 @@
    just double-click the HTML files on your own computer.
    ===================================================================== */
 
-/* ---------- BIBLE STORIES ---------- */
+/* ---------- BIBLE STORIES ----------
+   book: the story's PDF (comic storybook). Paste its Google Drive share link
+   (Share → "Anyone with the link" → Copy link). Leave "" while it's not ready:
+   the story then shows "Coming soon". */
 const STORIES = [
   { id: "calms-storm", title: "Jesus Calms the Storm", category: "Miracles of Jesus", emoji: "🌊",
     description: "Jesus shows His friends they can trust Him even when they are afraid.",
-    readMins: 4, age: "Ages 5 to 9", comic: "", pdf: "" },
+    readMins: 4, age: "Ages 5 to 9", comic: "", pdf: "", book: "https://drive.google.com/file/d/1NMnBj_qQWVxSI3JEgox3R_MHgg25ThBL/view?usp=sharing" },
   { id: "feeds-5000", title: "Jesus Feeds the 5,000", category: "Miracles of Jesus", emoji: "🍞",
     description: "A boy's small lunch becomes a feast for thousands of people.",
-    readMins: 5, age: "Ages 5 to 10", comic: "", pdf: "" },
+    readMins: 5, age: "Ages 5 to 10", comic: "", pdf: "", book: "" },
   { id: "good-samaritan", title: "The Good Samaritan", category: "Parables", emoji: "🤝",
     description: "A kind traveller helps a stranger and teaches us how to love our neighbour.",
-    readMins: 4, age: "Ages 6 to 11", comic: "", pdf: "" },
+    readMins: 4, age: "Ages 6 to 11", comic: "", pdf: "", book: "" },
   { id: "lost-sheep", title: "The Lost Sheep", category: "Parables", emoji: "🐑",
     description: "A shepherd searches everywhere for one lost sheep. Every one matters!",
-    readMins: 3, age: "Ages 4 to 8", comic: "", pdf: "" },
+    readMins: 3, age: "Ages 4 to 8", comic: "", pdf: "", book: "" },
   { id: "jesus-born", title: "Jesus Is Born", category: "Jesus' Birth", emoji: "⭐",
     description: "In a little town called Bethlehem, the Saviour of the world is born.",
-    readMins: 5, age: "Ages 4 to 10", comic: "", pdf: "" },
+    readMins: 5, age: "Ages 4 to 10", comic: "", pdf: "", book: "" },
   { id: "noahs-ark", title: "Noah's Ark", category: "Old Testament", emoji: "🌈",
     description: "Noah builds a giant boat and God keeps his family and the animals safe.",
-    readMins: 6, age: "Ages 4 to 9", comic: "", pdf: "" },
+    readMins: 6, age: "Ages 4 to 9", comic: "", pdf: "", book: "" },
   { id: "david-goliath", title: "David and Goliath", category: "Bible Heroes", emoji: "🪨",
     description: "A brave young shepherd trusts God to face a giant.",
-    readMins: 5, age: "Ages 6 to 11", comic: "", pdf: "" },
+    readMins: 5, age: "Ages 6 to 11", comic: "", pdf: "", book: "" },
   { id: "walks-water", title: "Jesus Walks on Water", category: "Miracles of Jesus", emoji: "🌟",
     description: "Peter learns to keep his eyes on Jesus, even on the waves.",
-    readMins: 4, age: "Ages 6 to 10", comic: "", pdf: "" },
+    readMins: 4, age: "Ages 6 to 10", comic: "", pdf: "", book: "" },
   { id: "zacchaeus", title: "Zacchaeus Meets Jesus", category: "Stories About Jesus", emoji: "🌳",
     description: "A small man climbs a tree and his whole life is changed by Jesus' kindness.",
-    readMins: 4, age: "Ages 5 to 10", comic: "", pdf: "" },
+    readMins: 4, age: "Ages 5 to 10", comic: "", pdf: "", book: "" },
   { id: "resurrection", title: "The Resurrection", category: "Easter", emoji: "✝️",
     description: "The tomb is empty and Jesus is alive! The happiest morning ever.",
-    readMins: 5, age: "Ages 6 to 11", comic: "", pdf: "" }
+    readMins: 5, age: "Ages 6 to 11", comic: "", pdf: "", book: "" }
 ];
 
 const STORY_CATEGORIES = [

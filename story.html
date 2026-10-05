@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bible Stories for Kids | Free &amp; Easy to Read | Bible Buddies</title>
+  <title>Comic Story | Bible Buddies</title>
   <meta name="description" content="Free Bible stories for children: Jesus&#x27; miracles, parables, Noah&#x27;s Ark, David and Goliath and more, told simply for kids aged 4 to 11.">
   <!-- SEO -->
-  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="robots" content="noindex, follow">
   <link rel="canonical" href="https://christcaremarketingsolutions.github.io/Bible-Buddies/stories.html">
   <link rel="icon" href="favicon.ico?v=4" sizes="any">
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg?v=4">
@@ -68,30 +68,22 @@
   </header>
   <div class="nav-backdrop"></div>
   <main id="main">
-    <section class="section center" style="background:var(--sky);color:#fff">
-      <div class="container">
-        <div class="page-buddy"><svg class="buddy-svg" viewBox="0 0 120 120" role="img" aria-label="Buddy the Sheep">
-  <ellipse cx="60" cy="105" rx="34" ry="7" fill="rgba(0,0,0,.12)"/>
-  <circle cx="42" cy="60" r="16" fill="#fff" stroke="#41383B" stroke-width="3"/>
-  <circle cx="78" cy="60" r="16" fill="#fff" stroke="#41383B" stroke-width="3"/>
-  <circle cx="60" cy="48" r="18" fill="#fff" stroke="#41383B" stroke-width="3"/>
-  <ellipse cx="60" cy="70" rx="30" ry="26" fill="#fff" stroke="#41383B" stroke-width="3"/>
-  <ellipse cx="60" cy="74" rx="20" ry="18" fill="#4b4043"/>
-  <circle cx="53" cy="70" r="4" fill="#fff"/><circle cx="67" cy="70" r="4" fill="#fff"/>
-  <circle cx="53" cy="71" r="2" fill="#1c1618"/><circle cx="67" cy="71" r="2" fill="#1c1618"/>
-  <path d="M55 80 q5 5 10 0" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-  <ellipse cx="40" cy="78" rx="6" ry="9" fill="#4b4043"/><ellipse cx="80" cy="78" rx="6" ry="9" fill="#4b4043"/>
-  <rect x="48" y="96" width="6" height="14" rx="3" fill="#4b4043"/>
-  <rect x="66" y="96" width="6" height="14" rx="3" fill="#4b4043"/>
-</svg></div>
-        <div style="font-size:2.1rem">📖</div>
-        <h1 style="color:#fff">Bible Stories</h1>
-        <p style="font-size:1rem;max-width:45ch;margin:.5rem auto 0">Read wonderful stories from the Bible. Tap a story to open it.</p>
+    <section class="section sr-section"><div class="container">
+      <a class="sr-back" href="stories.html">← All stories</a>
+      <div class="sr-head">
+        <div class="sr-emoji" data-sr-emoji aria-hidden="true">📖</div>
+        <div>
+          <h1 data-sr-title>Bible Story</h1>
+          <p class="sr-desc" data-sr-desc></p>
+        </div>
       </div>
-    </section>
-    <section class="section"><div class="container">
-      <div class="filter-bar" data-story-filter></div>
-      <div class="grid grid-3" data-story-grid></div>
+      <div class="btn-row sr-actions" data-sr-actions hidden>
+        <button type="button" class="btn btn-sky" data-sr-full>⛶ Full screen</button>
+        <a class="btn btn-ghost" data-sr-download rel="noopener">⬇ Download</a>
+      </div>
+      <div class="sr-frame" data-sr-frame>
+        <p class="sr-loading">Opening the story…</p>
+      </div>
     </div></section>
   </main>
   <footer class="site-footer">
@@ -129,28 +121,32 @@
   <script src="js/app.js?v=2026100505"></script>
   <script>
   (function(){
-    const grid = document.querySelector("[data-story-grid]");
-    const bar  = document.querySelector("[data-story-filter]");
-    const cats = ["All", ...STORY_CATEGORIES.filter(c => STORIES.some(s => s.category===c))];
-    let active = "All";
-    function draw(){
-      const list = active==="All" ? STORIES : STORIES.filter(s=>s.category===active);
-      grid.innerHTML = list.map(s=>`
-        <article class="card reveal">
-          <div class="card-icon">${s.emoji}</div>
-          <div class="chips"><span class="chip">⏱ ${s.readMins} min</span><span class="chip chip-age">${s.age}</span></div>
-          <h3>${s.title}</h3><p>${s.description}</p>
-          ${driveId(s.book)
-            ? `<a class="btn btn-sky" href="story.html?s=${encodeURIComponent(s.id)}">📖 Read Comic Story</a>`
-            : `<button type="button" class="btn btn-ghost" onclick="bbToast('This comic story is coming soon! 📖')">⏳ Coming soon</button>`}
-        </article>`).join("");
-      document.querySelectorAll(".reveal").forEach(r=>r.classList.add("in"));
+    const id = new URLSearchParams(location.search).get("s");
+    const story = STORIES.find(x => x.id === id);
+    const fileId = story && driveId(story.book);
+    const frame = document.querySelector("[data-sr-frame]");
+    if (!story || !fileId) {
+      document.querySelector("[data-sr-title]").textContent = story ? story.title : "Story not found";
+      frame.innerHTML = `<p class="sr-loading">${story ? "This comic story is coming soon! 📖" : "We couldn't find that story."} <a href="stories.html">See all stories</a></p>`;
+      return;
     }
-    bar.innerHTML = cats.map(c=>`<button class="filter-btn${c==='All'?' active':''}" data-c="${c}">${c}</button>`).join("");
-    bar.querySelectorAll(".filter-btn").forEach(b=>b.addEventListener("click",()=>{
-      active=b.dataset.c; bar.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active")); b.classList.add("active"); draw();
-    }));
-    draw();
+    document.title = story.title + " | Comic Story | Bible Buddies";
+    document.querySelector("[data-sr-title]").textContent = story.title;
+    document.querySelector("[data-sr-desc]").textContent = story.description;
+    document.querySelector("[data-sr-emoji]").textContent = story.emoji;
+    const f = document.createElement("iframe");
+    f.src = drivePreviewUrl(fileId);
+    f.title = story.title + " (comic story)";
+    f.allow = "fullscreen"; f.setAttribute("allowfullscreen", "");
+    f.addEventListener("load", () => frame.classList.add("ready"));
+    frame.innerHTML = ""; frame.append(f);
+    const actions = document.querySelector("[data-sr-actions]"); actions.hidden = false;
+    const dl = document.querySelector("[data-sr-download]");
+    dl.href = driveDownloadUrl(fileId);
+    document.querySelector("[data-sr-full]").addEventListener("click", () => {
+      const el = frame;
+      (el.requestFullscreen || el.webkitRequestFullscreen || (() => window.open(f.src, "_blank"))).call(el);
+    });
   })();
   </script>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>

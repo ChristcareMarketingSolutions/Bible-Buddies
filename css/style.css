@@ -938,3 +938,19 @@ img, video, canvas { max-width: 100%; }
 #his-journey, #walk, #stops { scroll-margin-top: 120px; }
 #walk .jw-stage { scroll-margin-top: 124px; }
 @media (max-width: 700px) { #his-journey, #walk, #stops, #walk .jw-stage { scroll-margin-top: 90px; } }
+
+/* Story reader (story.html): the PDF shown inside the page */
+.sr-section { padding-top: 1.6rem; }
+.sr-back { display: inline-block; font-weight: 800; color: var(--sky-deep); margin-bottom: 0.8rem; text-decoration: none; }
+.sr-head { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+.sr-head h1 { margin: 0; color: var(--grape-deep); }
+.sr-emoji { font-size: 2.6rem; }
+.sr-desc { margin: 0.2rem 0 0; color: var(--ink-soft); }
+.sr-frame { position: relative; height: 82vh; min-height: 480px; border: var(--border); border-radius: var(--radius-lg); overflow: hidden; background: #525659; box-shadow: var(--shadow-card); }
+.sr-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.sr-frame:fullscreen { height: 100%; border: 0; border-radius: 0; }
+.sr-loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 1rem; text-align: center; color: #fff; font-weight: 700; }
+.sr-frame:not(.no-frame) .sr-loading a { color: var(--sun); }
+.sr-actions { justify-content: flex-end; margin: 0 0 0.8rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.sr-actions[hidden] { display: none; }
+@media (max-width: 640px) { .sr-frame { height: 75vh; border-radius: var(--radius); } .sr-emoji { font-size: 2rem; } }
