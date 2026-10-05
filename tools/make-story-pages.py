@@ -23,6 +23,20 @@ ADV = json.loads(subprocess.check_output(
      str(ROOT / "js/adventures.js")]))
 OT_LAST = next(i for i, a in enumerate(ADV) if a["id"] == "jonah")
 
+# 3D "Walk with Jesus" stops (js/journey-stops.js): each gets its own page in walk-with-jesus/
+_J = json.loads(subprocess.check_output(
+    ["node", "-e", "const fs=require('fs');eval(fs.readFileSync(process.argv[1],'utf8').replace(/^const (\\w+)/gm,'global.$1'));process.stdout.write(JSON.stringify({s:JOURNEY_STOPS,c:JOURNEY_CHAPTERS}))",
+     str(ROOT / "js/journey-stops.js")]))
+STOPS, CHAPTERS = _J["s"], _J["c"]
+# stops that tell the same story as a Bible Story Library page
+STOP_STORY = {"bethlehem": "jesus-born", "temple-boy": "boy-jesus", "galilee-call": "fishermen", "cana": "water-wine",
+              "storm": "calms-storm", "feeding": "feeds-5000", "water-walk": "walks-water", "empty-tomb": "resurrection"}
+STORY_STOP = {v: k for k, v in STOP_STORY.items()}
+def stop_slug(st):
+    return re.sub(r"[^a-z0-9]+", "-", (st["place"] + " " + st["title"]).lower().replace("'", "").replace(",", "").replace("–", " ")).strip("-")
+def stop_chapter(n):
+    return [c for c in CHAPTERS if c["from"] <= n][-1]["title"]
+
 SLUG_OVERRIDE = {"creation": "creation-story", "resurrection": "jesus-is-alive-easter-story"}
 def slug(a):
     if a["id"] in SLUG_OVERRIDE: return SLUG_OVERRIDE[a["id"]]
@@ -125,6 +139,8 @@ for i, a in enumerate(ADV):
         "genre": "Bible story for children", "datePublished": "2026-10-05", "dateModified": TODAY,
         "author": PUBLISHER, "publisher": PUBLISHER, "isPartOf": {"@type": "CollectionPage", "name": "Bible Story Library", "url": SITE + "bible-stories/"}}
     prev_a, next_a = ADV[i - 1] if i else None, ADV[i + 1] if i + 1 < len(ADV) else None
+    st = next((x for x in STOPS if x["id"] == STORY_STOP.get(a["id"])), None)
+    walk_link = f'<a href="../walk-with-jesus/{stop_slug(st)}.html">🚶 Visit {esc(st["place"])} in the 3D walk</a> · ' if st else ""
     choices = "".join(f'<button type="button" class="adv-choice" data-i="{k}">{esc(c)}</button>' for k, c in enumerate(a["question"]["choices"]))
     nav = '<nav class="sl-pager" aria-label="More stories">' + \
         (f'<a href="{slug(prev_a)}.html">← {esc(prev_a["title"])}</a>' if prev_a else '<span></span>') + \
@@ -154,7 +170,7 @@ for i, a in enumerate(ADV):
             <div class="adv-box adv-challenge"><strong>🎯 Challenge</strong> {esc(a["challenge"])}</div>
           </aside>
         </div>
-        <p class="adv-more">Want more? <a href="../games.html">🎮 Play Bible games</a> · <a href="../memory-verses.html">⭐ Memory verses</a></p>
+        <p class="adv-more">Want more? {walk_link}<a href="../games.html">🎮 Play Bible games</a> · <a href="../memory-verses.html">⭐ Memory verses</a></p>
       </article>
       <section class="sl-lesson" aria-labelledby="lesson-h">
         <h2 id="lesson-h">👩‍🏫 Use this story as a Sunday school lesson</h2>
@@ -230,6 +246,97 @@ main = f'''  <main id="main">
   </main>'''
 (OUT / "index.html").write_text(head(idx_title, idx_desc, idx_url, ld).replace('content="article"', 'content="website"') + up(body_start) + main + foot())
 
+# ---------- Walk with Jesus: one page per 3D walk stop ----------
+WOUT = ROOT / "walk-with-jesus"; WOUT.mkdir(exist_ok=True)
+for old in WOUT.glob("*.html"): old.unlink()
+WALK_IMG = SITE + "images/og-journey.jpg"
+# walk pages belong under "Meet Jesus" in the menu
+walk_body = up(body_start).replace('<a href="../stories.html" aria-current="page">', '<a href="../stories.html">') \
+                          .replace('<a href="../meet-jesus.html">Meet Jesus</a>', '<a href="../meet-jesus.html" aria-current="page">Meet Jesus</a>', 1)
+stop_pages = []
+for n, st in enumerate(STOPS, 1):
+    sl = stop_slug(st); url = f"{SITE}walk-with-jesus/{sl}.html"; chap = stop_chapter(n)
+    title = f"{st['place']}: {st['title']} | 3D Bible Walk for Kids | Bible Buddies"
+    desc = shorten(f"Visit {st['place']} with Jesus in a free 3D Bible walk for kids. {st['title']} ({st['ref']}): read the Bible story, then walk there in 3D.", 158)
+    story_id = STOP_STORY.get(st["id"]); story = next((x for x in ADV if x["id"] == story_id), None)
+    ld = [{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": SITE},
+            {"@type": "ListItem", "position": 2, "name": "Walk with Jesus in 3D", "item": SITE + "walk-with-jesus/"},
+            {"@type": "ListItem", "position": 3, "name": f"{st['place']}: {st['title']}", "item": url}]},
+          {"@context": "https://schema.org", "@type": "Article", "headline": f"{st['place']}: {st['title']}", "description": desc, "url": url,
+           "mainEntityOfPage": url, "image": WALK_IMG, "inLanguage": "en", "isAccessibleForFree": True, "audience": AUDIENCE,
+           "about": [{"@type": "Place", "name": st["place"]}, {"@type": "Thing", "name": f"{st['ref']} (The Bible)"}],
+           "genre": "Bible story for children", "datePublished": "2026-10-06", "dateModified": TODAY, "author": PUBLISHER, "publisher": PUBLISHER,
+           "isPartOf": {"@type": "CollectionPage", "name": "Walk with Jesus in 3D", "url": SITE + "walk-with-jesus/"}}]
+    prev_s, next_s = STOPS[n - 2] if n > 1 else None, STOPS[n] if n < len(STOPS) else None
+    nav = '<nav class="sl-pager" aria-label="More stops">' + \
+        (f'<a href="{stop_slug(prev_s)}.html">← {esc(prev_s["place"])}</a>' if prev_s else '<span></span>') + \
+        '<a href="index.html">🗺️ All 40 stops</a>' + \
+        (f'<a href="{stop_slug(next_s)}.html">{esc(next_s["place"])} →</a>' if next_s else '<span></span>') + '</nav>'
+    story_link = f' · <a href="../bible-stories/{slug(story)}.html">📖 Read the full story: {esc(story["title"])}</a>' if story else ""
+    main = f'''  <main id="main">
+    <section class="section sl-section"><div class="container">
+      <p class="sl-crumbs"><a href="../index.html">Home</a> › <a href="index.html">Walk with Jesus in 3D</a> › {esc(st["place"])}</p>
+      <article class="featured adventure">
+        <span class="tag">Stop {n} of {len(STOPS)} · {esc(chap)}</span>
+        <div class="adv-emoji" aria-hidden="true">{st["emoji"]}</div>
+        <h1>{esc(st["place"])}: {esc(st["title"])}</h1>
+        <p class="adv-ref">📖 {esc(st["ref"])} <button type="button" class="adv-listen" data-listen>🔊 Listen</button></p>
+        <div class="wj-cta"><a class="btn btn-primary btn-lg" href="../meet-jesus.html#stop-{n}">🚶 Walk here in 3D</a></div>
+        <div class="adv-story">
+{chr(10).join(f"          <p>{esc(x)}</p>" for x in st["paragraphs"])}
+        </div>
+        <div class="adv-box adv-fact"><strong>📜 Bible verse</strong> “{esc(st["verse"]["text"])}” <em>({esc(st["verse"]["ref"])})</em></div>
+        <p class="adv-more">Explore more: <a href="../meet-jesus.html#walk">🚶 Start the 3D walk</a>{story_link} · <a href="../bible-stories/">📚 Bible stories for kids</a></p>
+      </article>
+      {nav}
+    </div></section>
+  </main>'''
+    script = '''  <script>
+  document.querySelector("[data-listen]").addEventListener("click", () => speakText(document.querySelector("h1").textContent + ". " + document.querySelector(".adv-story").textContent));
+  </script>
+'''
+    page = head(title, desc, url, ld).replace(OG_IMAGE, WALK_IMG) + walk_body + main + foot(script)
+    (WOUT / f"{sl}.html").write_text(page)
+    stop_pages.append((sl, st, n))
+
+# walk index
+wi_url = SITE + "walk-with-jesus/"
+wi_title = "Walk with Jesus in 3D: A Virtual Bible Lands Tour for Kids | Bible Buddies"
+wi_desc = "Walk where Jesus walked! A free 3D Bible walk for kids through 40 places from the Gospels: Bethlehem, Nazareth, the Jordan River, the Sea of Galilee and Jerusalem."
+groups = ""
+for ci, c in enumerate(CHAPTERS):
+    end = CHAPTERS[ci + 1]["from"] - 1 if ci + 1 < len(CHAPTERS) else len(STOPS)
+    cards = "".join(f'<a class="card sl-card" href="{sl}.html"><span class="sl-emoji" aria-hidden="true">{st["emoji"]}</span>'
+                    f'<small>Stop {n} · {esc(st["place"])}</small><strong>{esc(st["title"])}</strong><small>📖 {esc(st["ref"])}</small></a>'
+                    for sl, st, n in stop_pages if c["from"] <= n <= end)
+    groups += f'<div class="section-head" style="margin-top:2rem"><h2>{esc(c["title"])}</h2></div><div class="sl-grid">{cards}</div>'
+wld = [{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+         {"@type": "ListItem", "position": 1, "name": "Home", "item": SITE},
+         {"@type": "ListItem", "position": 2, "name": "Walk with Jesus in 3D", "item": wi_url}]},
+       {"@context": "https://schema.org", "@type": "CollectionPage", "name": "Walk with Jesus in 3D", "description": wi_desc, "url": wi_url,
+        "inLanguage": "en", "isAccessibleForFree": True, "audience": AUDIENCE, "publisher": PUBLISHER,
+        "mainEntity": {"@type": "ItemList", "numberOfItems": len(stop_pages), "itemListElement": [
+            {"@type": "ListItem", "position": n, "url": f"{wi_url}{sl}.html", "name": f"{st['place']}: {st['title']}"} for sl, st, n in stop_pages]}}]
+wmain = f'''  <main id="main">
+    <section class="section center jw-hero">
+      <div class="container">
+        <div style="font-size:2.1rem" aria-hidden="true">🚶</div>
+        <h1 style="color:#fff">Walk with Jesus in 3D</h1>
+        <p style="font-size:1.15rem;max-width:50ch;margin:.4rem auto 1rem">Walk where Jesus walked! A free 3D Bible walk for kids through {len(stop_pages)} places from His life, from Bethlehem to the empty tomb.</p>
+        <a class="btn btn-primary btn-lg" href="../meet-jesus.html#walk">▶ Start the 3D walk</a>
+      </div>
+    </section>
+    <section class="section"><div class="container">
+      {groups}
+      <div class="seo-blurb">
+        <h2>A virtual tour of the Bible lands for kids</h2>
+        <p>The Bible Buddies 3D walk is like a street view of Jesus' life: children press Forward and walk a cartoon road through the Holy Land, stopping at {len(stop_pages)} places from the Gospels and Acts. At each stop they read what happened there, straight from the Bible, with the Bible reference and a key verse. Visit Bethlehem where Jesus was born, Nazareth where He grew up, the Jordan River where He was baptized, the Sea of Galilee where He calmed the storm, Jerusalem, the Garden of Gethsemane, Golgotha and the empty tomb. It is free, safe, works in the browser and is great for Sunday school, homeschool and Easter or Christmas lessons. Read more in our <a href="../bible-stories/">Bible stories for kids</a>.</p>
+      </div>
+    </div></section>
+  </main>'''
+(WOUT / "index.html").write_text(head(wi_title, wi_desc, wi_url, wld).replace('content="article"', 'content="website"').replace(OG_IMAGE, WALK_IMG) + walk_body + wmain + foot())
+
 # ---------- Teacher Corner: list every story as a free Sunday school lesson ----------
 tp = ROOT / "teachers.html"; t = tp.read_text()
 lessons = "".join(f'<li><a href="bible-stories/{s}.html">{esc(a["title"])}</a> <small>({esc(a["ref"])})</small></li>' for s, a, i in pages)
@@ -241,7 +348,9 @@ tp.write_text(t)
 main_pages = [("", "1.0"), ("stories.html", "0.9"), ("bible-stories/", "0.9"), ("games.html", "0.9"), ("meet-jesus.html", "0.8"),
               ("memory-verses.html", "0.8"), ("colouring.html", "0.7"), ("comics.html", "0.6"), ("explorer.html", "0.7"),
               ("teachers.html", "0.7"), ("about.html", "0.5"), ("contact.html", "0.5")]
-urls = [(SITE + p, pr) for p, pr in main_pages] + [(f"{SITE}bible-stories/{s}.html", "0.7") for s, a, i in pages]
+main_pages.insert(3, ("walk-with-jesus/", "0.9"))
+urls = [(SITE + p, pr) for p, pr in main_pages] + [(f"{SITE}bible-stories/{s}.html", "0.7") for s, a, i in pages] + \
+       [(f"{SITE}walk-with-jesus/{sl}.html", "0.6") for sl, st, n in stop_pages]
 (ROOT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     "".join(f"  <url><loc>{u}</loc><lastmod>{TODAY}</lastmod><priority>{pr}</priority></url>\n" for u, pr in urls) + "</urlset>\n")
-print(f"Built {len(pages)} story pages + library index; sitemap has {len(urls)} URLs (assets ?v={version})")
+print(f"Built {len(pages)} story pages, {len(stop_pages)} walk stop pages + 2 indexes; sitemap has {len(urls)} URLs (assets ?v={version})")

@@ -132,6 +132,9 @@ remove files listed in it.
 - **Bible Story Library** (`bible-stories/`): one page per story in `js/adventures.js`, so
   each story can be found on Google. After editing `js/adventures.js`, run
   `python3 tools/make-story-pages.py` to rebuild these pages and `sitemap.xml`.
+- **Walk with Jesus in 3D** (`walk-with-jesus/`): one page per 3D walk stop in
+  `js/journey-stops.js` (40 places), each with a "Walk here in 3D" button. Built by the same
+  script, so run it after changing the stops too.
 - `sitemap.xml` lists every page (rebuilt by the script above). If you add another main
   page, add it to `main_pages` in `tools/make-story-pages.py`.
 - `robots.txt` must sit at the very top of the address, so it lives in the
