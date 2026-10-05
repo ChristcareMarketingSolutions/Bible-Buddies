@@ -36,7 +36,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100507">
+  <link rel="stylesheet" href="css/style.css?v=2026100508">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -132,13 +132,15 @@
 
     <!-- ===== TODAY'S BIBLE ADVENTURE ===== -->
     <section class="section" id="adventure">
-      <div class="container" style="max-width:760px">
+      <div class="container">
         <article class="featured adventure reveal" data-daily-adventure>
           <span class="tag">Today's Bible Adventure</span>
           <div class="adv-emoji" data-emoji aria-hidden="true">📖</div>
           <h2 data-title>Loading today's adventure…</h2>
           <p class="adv-ref"><span data-ref></span> <button type="button" class="adv-listen" data-listen>🔊 Listen</button></p>
+          <div class="adv-body">
           <div class="adv-story" data-story></div>
+          <aside class="adv-side">
           <div class="adv-box adv-fact"><strong>💡 Did you know?</strong> <span data-fact></span></div>
           <div class="adv-box adv-quiz">
             <strong>❓ Quick question</strong>
@@ -147,6 +149,8 @@
             <p class="adv-result" data-result aria-live="polite"></p>
           </div>
           <div class="adv-box adv-challenge"><strong>🎯 Today's challenge</strong> <span data-challenge></span></div>
+          </aside>
+          </div>
           <p class="adv-more">Want more? <a href="stories.html">📚 More Bible stories</a> · <a href="games.html">🎮 Play Bible games</a></p>
         </article>
       </div>
@@ -288,10 +292,10 @@
     </div>
   </div>
 
-  <script src="js/data.js?v=2026100507"></script>
-  <script src="js/progress.js?v=2026100507"></script>
-  <script src="js/adventures.js?v=2026100507"></script>
-  <script src="js/app.js?v=2026100507"></script>
+  <script src="js/data.js?v=2026100508"></script>
+  <script src="js/progress.js?v=2026100508"></script>
+  <script src="js/adventures.js?v=2026100508"></script>
+  <script src="js/app.js?v=2026100508"></script>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>
