@@ -355,6 +355,8 @@ ul { list-style: none; }
 }
 .verse-scroll .verse-text { font-family: var(--font-head); font-size: 1.5rem; color: var(--grape-deep); }
 .verse-scroll .verse-ref  { font-weight: 800; margin-top: 0.6rem; color: var(--ink); }
+.verse-scroll .verse-day { font-weight: 700; font-size: 0.95rem; color: var(--ink-soft); margin-bottom: 0.5rem; }
+.verse-today { font: inherit; font-size: 0.85rem; color: var(--sky-deep); background: none; border: 0; padding: 0.2rem 0.3rem; cursor: pointer; text-decoration: underline; }
 .verse-scroll .btn-row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-top: 1.2rem; }
 
 /* Coloured section band */
@@ -899,3 +901,16 @@ img, video, canvas { max-width: 100%; }
 .share-link:hover, .share-link:focus-visible { filter: brightness(1.08); }
 .share-copy { display: flex; gap: .5rem; }
 .share-copy .search-input { flex: 1; min-width: 0; font-size: .9rem; }
+
+/* Memory Verses page: month tabs and daily verse cards */
+.vm-months { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 1rem; }
+.vm-months .filter-btn[aria-selected="true"] { background: var(--sky); color: var(--white); }
+.vm-theme { text-align: center; color: var(--grape-deep); margin-bottom: 1.2rem; }
+.vm-card { display: flex; flex-direction: column; gap: 0.45rem; }
+.vm-card p { margin: 0; }
+.vm-card .btn { align-self: flex-start; margin-top: auto; }
+.vm-card .vm-date { font-weight: 800; font-size: 0.9rem; color: var(--sky-deep); }
+.vm-card .vm-text { font-family: var(--font-head); font-size: 1.1rem; color: var(--grape-deep); }
+.vm-card .vm-ref { font-weight: 800; color: var(--ink); }
+.vm-card .vm-explain { color: var(--ink-soft); }
+.vm-today { outline: 4px solid var(--sun, #FFC93C); outline-offset: 2px; }

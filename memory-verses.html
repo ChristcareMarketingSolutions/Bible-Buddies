@@ -5,7 +5,7 @@
   <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bible Memory Verses for Kids | Bible Buddies</title>
-  <meta name="description" content="Easy Bible memory verses for kids with simple meanings, read-aloud and a hide-the-words game. Share today&#x27;s verse as a picture card.">
+  <meta name="description" content="A Bible memory verse for every day of the year (366 verses) with simple meanings for kids, read-aloud and a hide-the-words game. Share today&#x27;s verse as a picture card.">
   <!-- SEO -->
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="https://christcaremarketingsolutions.github.io/Bible-Buddies/memory-verses.html">
@@ -15,7 +15,7 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_GB">
   <meta property="og:title" content="Bible Memory Verses for Kids">
-  <meta property="og:description" content="Easy Bible memory verses for kids with simple meanings, read-aloud and a hide-the-words game. Share today&#x27;s verse as a picture card.">
+  <meta property="og:description" content="A Bible memory verse for every day of the year (366 verses) with simple meanings for kids, read-aloud and a hide-the-words game. Share today&#x27;s verse as a picture card.">
   <meta property="og:url" content="https://christcaremarketingsolutions.github.io/Bible-Buddies/memory-verses.html">
   <meta property="og:image" content="https://christcaremarketingsolutions.github.io/Bible-Buddies/images/og-image.jpg">
   <meta property="og:image:width" content="1200">
@@ -23,17 +23,17 @@
   <meta property="og:image:alt" content="Bible Memory Verses for Kids: a free Bible website for kids">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Bible Memory Verses for Kids">
-  <meta name="twitter:description" content="Easy Bible memory verses for kids with simple meanings, read-aloud and a hide-the-words game. Share today&#x27;s verse as a picture card.">
+  <meta name="twitter:description" content="A Bible memory verse for every day of the year (366 verses) with simple meanings for kids, read-aloud and a hide-the-words game. Share today&#x27;s verse as a picture card.">
   <meta name="twitter:image" content="https://christcaremarketingsolutions.github.io/Bible-Buddies/images/og-image.jpg">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://christcaremarketingsolutions.github.io/Bible-Buddies/"}, {"@type": "ListItem", "position": 2, "name": "Memory Verses", "item": "https://christcaremarketingsolutions.github.io/Bible-Buddies/memory-verses.html"}]}</script>
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Bible Memory Verses for Kids", "description": "Easy Bible memory verses for kids with simple meanings, read-aloud and a hide-the-words game. Share today's verse as a picture card.", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/memory-verses.html", "image": "https://christcaremarketingsolutions.github.io/Bible-Buddies/images/og-image.jpg", "inLanguage": "en", "isAccessibleForFree": true, "audience": {"@type": "PeopleAudience", "suggestedMinAge": 4, "suggestedMaxAge": 11}, "educationalLevel": "Children aged 4 to 11", "learningResourceType": "Memory verses", "about": {"@type": "Thing", "name": "The Bible"}, "publisher": {"@type": "Organization", "name": "Bible Buddies", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Bible Memory Verses for Kids", "description": "A Bible memory verse for every day of the year (366 verses) with simple meanings for kids, read-aloud and a hide-the-words game. Share today's verse as a picture card.", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/memory-verses.html", "image": "https://christcaremarketingsolutions.github.io/Bible-Buddies/images/og-image.jpg", "inLanguage": "en", "isAccessibleForFree": true, "audience": {"@type": "PeopleAudience", "suggestedMinAge": 4, "suggestedMaxAge": 11}, "educationalLevel": "Children aged 4 to 11", "learningResourceType": "Memory verses", "about": {"@type": "Thing", "name": "The Bible"}, "publisher": {"@type": "Organization", "name": "Bible Buddies", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/"}}</script>
   <!-- /SEO -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4CB4E7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100304">
+  <link rel="stylesheet" href="css/style.css?v=2026100502">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -99,7 +99,9 @@
       </div>
     </div></section>
     <section class="section" style="background:var(--cloud)"><div class="container">
-      <div class="section-head"><h2>All memory verses</h2></div>
+      <div class="section-head"><h2>A verse for every day</h2><p>366 verses, one for each day of the year. Pick a month to see its verses.</p></div>
+      <div class="vm-months" role="tablist" aria-label="Choose a month" data-verse-months></div>
+      <h3 class="vm-theme" data-verse-theme></h3>
       <div class="grid grid-2" data-verse-list></div>
     </div></section>
   </main>
@@ -133,17 +135,43 @@
       <div class="search-results"></div>
     </div>
   </div>
-  <script src="js/data.js?v=2026100304"></script>
-  <script src="js/progress.js?v=2026100304"></script>
-  <script src="js/app.js?v=2026100304"></script>
+  <script src="js/data.js?v=2026100502"></script>
+  <script src="js/progress.js?v=2026100502"></script>
+  <script src="js/app.js?v=2026100502"></script>
   <script>
   (function(){
-    const list=document.querySelector("[data-verse-list]");
-    if(list) list.innerHTML = VERSES.map(v=>`
-      <div class="card reveal"><p style="font-family:var(--font-head);font-size:1.15rem;color:var(--grape-deep)">“${v.text}”</p>
-      <p style="font-weight:800">${v.ref}</p><p style="color:var(--ink-soft)">${v.explain}</p>
-      <button class="btn btn-sky" onclick="speakText('${v.text.replace(/'/g,"")} ${v.ref}')">🔊 Listen</button></div>`).join("");
-    document.querySelectorAll(".reveal").forEach(r=>r.classList.add("in"));
+    const list = document.querySelector("[data-verse-list]"), tabs = document.querySelector("[data-verse-months]"), themeEl = document.querySelector("[data-verse-theme]");
+    if (!list || !tabs) return;
+    const now = new Date(), todayIdx = verseIndexFor(now);
+    const starts = [], len = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    len.reduce((a, n, m) => (starts[m] = a, a + n), 0);
+    function showMonth(m, scroll) {
+      tabs.querySelectorAll("button").forEach((b, k) => b.setAttribute("aria-selected", String(k === m)));
+      themeEl.textContent = VERSE_MONTHS[m][0] + ": " + VERSE_MONTHS[m][1];
+      list.textContent = "";
+      for (let d = 0; d < len[m]; d++) {
+        const i = starts[m] + d, v = VERSES[i];
+        const card = document.createElement("div");
+        card.className = "card vm-card" + (i === todayIdx ? " vm-today" : "");
+        const date = document.createElement("p"); date.className = "vm-date";
+        date.textContent = (d + 1) + " " + VERSE_MONTHS[m][0] + (i === todayIdx ? " · Today ⭐" : "");
+        const text = document.createElement("p"); text.className = "vm-text"; text.textContent = quoteVerse(v.text);
+        const ref = document.createElement("p"); ref.className = "vm-ref"; ref.textContent = v.ref;
+        const ex = document.createElement("p"); ex.className = "vm-explain"; ex.textContent = v.explain;
+        const btn = document.createElement("button"); btn.type = "button"; btn.className = "btn btn-sky"; btn.textContent = "🔊 Listen";
+        btn.addEventListener("click", () => speakText(v.text + ". " + v.ref));
+        card.append(date, text, ref, ex, btn);
+        list.append(card);
+        if (scroll && i === todayIdx) setTimeout(() => card.scrollIntoView({ block: "center", behavior: "smooth" }), 50);
+      }
+    }
+    VERSE_MONTHS.forEach(([name], m) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "filter-btn"; b.setAttribute("role", "tab"); b.textContent = name.slice(0, 3);
+      b.title = name; b.addEventListener("click", () => showMonth(m));
+      tabs.append(b);
+    });
+    showMonth(now.getMonth());
   })();
   </script>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>

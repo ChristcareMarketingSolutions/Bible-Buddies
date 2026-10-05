@@ -12,11 +12,24 @@ const CONFIG = {
 };
 
 /* ---------- helper: today's index (changes daily, no server) ---------- */
-function dayIndex(len) {
+function dayNumber() {
+  // days since 1 Jan 1970 in the visitor's own time zone, so it ticks over at their midnight
   const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const day = Math.floor((now - start) / 86400000);
-  return day % len;
+  return Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+}
+function dayIndex(len) {
+  return dayNumber() % len;
+}
+/* Runs fn again whenever a new day starts while the page is still open.
+   Phones often bring back an open tab or home-screen app without reloading it,
+   so "today's" content must refresh itself when the date changes. */
+function onNewDay(fn) {
+  let shown = dayNumber();
+  const check = () => { const d = dayNumber(); if (d !== shown) { shown = d; fn(); } };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+  window.addEventListener("pageshow", check);
+  window.addEventListener("focus", check);
+  setInterval(check, 60000);
 }
 function shuffle(arr) {
   const a = arr.slice();
@@ -100,11 +113,15 @@ function initSearch() {
 function initDailyAdventure() {
   const box = document.querySelector("[data-daily-adventure]");
   if (!box) return;
-  const s = STORIES[dayIndex(STORIES.length)];
-  box.querySelector("[data-title]").textContent = s.title;
-  box.querySelector("[data-desc]").textContent = s.description;
-  const em = box.querySelector("[data-emoji]");
-  if (em) em.textContent = s.emoji;
+  const fill = () => {
+    const s = STORIES[dayIndex(STORIES.length)];
+    box.querySelector("[data-title]").textContent = s.title;
+    box.querySelector("[data-desc]").textContent = s.description;
+    const em = box.querySelector("[data-emoji]");
+    if (em) em.textContent = s.emoji;
+  };
+  fill();
+  onNewDay(fill);
 }
 
 /* ---------- WHAT WILL YOU DISCOVER TODAY ---------- */
@@ -123,36 +140,79 @@ function initDiscover() {
 }
 
 /* ---------- DAILY MEMORY VERSE (home + verses page) ---------- */
+/* VERSES has one verse per calendar date (366 entries, 1 January first), so the
+   same date always shows the same verse and no verse repeats within a year. */
+function verseIndexFor(date) {
+  // position of this month/day in a leap year, so 29 February has its own verse
+  return Math.round((Date.UTC(2024, date.getMonth(), date.getDate()) - Date.UTC(2024, 0, 1)) / 86400000) % VERSES.length;
+}
+function easterSunday(year) {
+  // Western (Gregorian) Easter date
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100, d = Math.floor(b / 4), e = b % 4,
+    f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
+    i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+    month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+function verseFor(date) {
+  if (typeof SPECIAL_VERSES !== "undefined") {
+    const e = easterSunday(date.getFullYear());
+    const diff = Math.round((Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(e.getFullYear(), e.getMonth(), e.getDate())) / 86400000);
+    const key = { "-7": "palm", "-2": "friday", "0": "easter" }[diff];
+    if (key && SPECIAL_VERSES[key]) return SPECIAL_VERSES[key];
+  }
+  return VERSES[verseIndexFor(date)];
+}
+function quoteVerse(t) { return t.includes("“") ? t : `“${t}”`; }   // no extra marks when the verse has its own
+
 function initDailyVerse() {
   document.querySelectorAll("[data-daily-verse]").forEach(box => {
-    let i = dayIndex(VERSES.length);
+    let offset = 0, v;                       // offset: days after today ("Next verse")
     const hide = box.querySelector("[data-v-hide]");
+    const textEl = box.querySelector("[data-v-text]");
+    let dayEl = box.querySelector("[data-v-day]");
+    if (!dayEl) {
+      dayEl = document.createElement("p");
+      dayEl.className = "verse-day"; dayEl.setAttribute("data-v-day", "");
+      textEl.before(dayEl);
+    }
     const show = () => {
-      const v = VERSES[i];
+      const date = new Date(); date.setDate(date.getDate() + offset);
+      v = verseFor(date);
+      const label = date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+      dayEl.textContent = "";
+      dayEl.append(`📅 ${offset === 0 ? "Today, " : ""}${label}${v.day ? " · " + v.day : ""}`);
+      if (offset !== 0) {
+        const back = document.createElement("button");
+        back.type = "button"; back.className = "verse-today"; back.textContent = "↺ Back to today";
+        back.addEventListener("click", () => { offset = 0; show(); });
+        dayEl.append(" ", back);
+      }
       if (hide) hide.textContent = "Hide words";
-      box.querySelector("[data-v-text]").textContent = `“${v.text}”`;
+      textEl.textContent = quoteVerse(v.text);
       box.querySelector("[data-v-ref]").textContent = v.ref;
       const ex = box.querySelector("[data-v-explain]");
       if (ex) ex.textContent = v.explain;
     };
     show();
+    onNewDay(() => { offset = 0; show(); });
     const next = box.querySelector("[data-v-next]");
-    next && next.addEventListener("click", () => { i = (i + 1) % VERSES.length; show(); });
+    next && next.addEventListener("click", () => { offset = (offset + 1) % 366; show(); });
     hide && hide.addEventListener("click", () => {
       if (hide.textContent === "Hide words") {
-        hideWords(box.querySelector("[data-v-text]"), VERSES[i].text);
+        hideWords(textEl, v.text);
         hide.textContent = "Show words";
       } else show();
     });
     const speak = box.querySelector("[data-v-speak]");
-    speak && speak.addEventListener("click", () => speakText(VERSES[i].text + ". " + VERSES[i].ref));
+    speak && speak.addEventListener("click", () => speakText(v.text + ". " + v.ref));
     // share today's verse as a picture card
     const row = box.querySelector(".btn-row");
     if (row) {
       const b = document.createElement("button");
       b.type = "button"; b.className = "btn btn-grape"; b.textContent = "📤 Share verse";
       b.title = "Grown-ups: share this verse as a picture";
-      b.addEventListener("click", () => bbShareVerse(VERSES[i]));
+      b.addEventListener("click", () => bbShareVerse(v));
       row.appendChild(b);
     }
   });
@@ -164,7 +224,8 @@ function hideWords(el, text) {
   const words = text.split(" ");
   let hidden = words.map(w => Math.random() < 0.4 && w.length > 2);
   if (!hidden.some(Boolean)) hidden = words.map(w => w.length > 3);   // always hide at least one
-  el.textContent = "“";
+  const quoted = !text.includes("“");
+  el.textContent = quoted ? "“" : "";
   words.forEach((w, k) => {
     if (k) el.append(" ");
     if (!hidden[k]) { el.append(w); return; }
@@ -175,7 +236,7 @@ function hideWords(el, text) {
     b.addEventListener("click", () => { b.replaceWith(w); });
     el.append(b);
   });
-  el.append("”");
+  if (quoted) el.append("”");
 }
 
 /* ---------- SHARING (for grown-ups) ----------
@@ -252,7 +313,7 @@ function bbShareVerse(v) {
     g.fillStyle = "#7C5CBF"; g.font = font(600, 46); g.textAlign = "center"; g.fillText("⭐ Today's Memory Verse", S / 2, y + 90);
     // verse text, wrapped to fit
     let px = 64, lines;
-    do { g.font = font(600, px); lines = wrap(g, `“${v.text}”`, w - 120); px -= 4; } while (lines.length * px * 1.25 > h - 260 && px > 34);
+    do { g.font = font(600, px); lines = wrap(g, quoteVerse(v.text), w - 120); px -= 4; } while (lines.length * px * 1.25 > h - 260 && px > 34);
     g.fillStyle = "#41383B"; const lh = (px + 4) * 1.25, top = y + 130 + (h - 260 - lines.length * lh) / 2 + lh * 0.8;
     lines.forEach((ln, k) => g.fillText(ln, S / 2, top + k * lh));
     g.fillStyle = "#F0A500"; g.font = font(700, 50); g.fillText(v.ref, S / 2, y + h - 70);
