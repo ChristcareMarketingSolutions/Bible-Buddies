@@ -239,6 +239,15 @@ function hideWords(el, text) {
   if (quoted) el.append("”");
 }
 
+/* ---------- STORYBOOK PDFs (stored on Google Drive) ---------- */
+function driveId(link) {
+  if (!link) return "";
+  const m = String(link).match(/\/d\/([\w-]{20,})/) || String(link).match(/[?&]id=([\w-]{20,})/);
+  return m ? m[1] : (/^[\w-]{20,}$/.test(link) ? link : "");
+}
+const drivePreviewUrl  = id => `https://drive.google.com/file/d/${id}/preview`;
+const driveDownloadUrl = id => `https://drive.google.com/uc?export=download&id=${id}`;
+
 /* ---------- SHARING (for grown-ups) ----------
    Uses the phone's own share sheet when there is one; otherwise shows
    WhatsApp, Facebook, X, email and copy-link buttons. */
