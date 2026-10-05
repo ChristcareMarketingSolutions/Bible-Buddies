@@ -12,11 +12,24 @@ const CONFIG = {
 };
 
 /* ---------- helper: today's index (changes daily, no server) ---------- */
-function dayIndex(len) {
+function dayNumber() {
+  // days since 1 Jan 1970 in the visitor's own time zone, so it ticks over at their midnight
   const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const day = Math.floor((now - start) / 86400000);
-  return day % len;
+  return Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+}
+function dayIndex(len) {
+  return dayNumber() % len;
+}
+/* Runs fn again whenever a new day starts while the page is still open.
+   Phones often bring back an open tab or home-screen app without reloading it,
+   so "today's" content must refresh itself when the date changes. */
+function onNewDay(fn) {
+  let shown = dayNumber();
+  const check = () => { const d = dayNumber(); if (d !== shown) { shown = d; fn(); } };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+  window.addEventListener("pageshow", check);
+  window.addEventListener("focus", check);
+  setInterval(check, 60000);
 }
 function shuffle(arr) {
   const a = arr.slice();
@@ -100,11 +113,15 @@ function initSearch() {
 function initDailyAdventure() {
   const box = document.querySelector("[data-daily-adventure]");
   if (!box) return;
-  const s = STORIES[dayIndex(STORIES.length)];
-  box.querySelector("[data-title]").textContent = s.title;
-  box.querySelector("[data-desc]").textContent = s.description;
-  const em = box.querySelector("[data-emoji]");
-  if (em) em.textContent = s.emoji;
+  const fill = () => {
+    const s = STORIES[dayIndex(STORIES.length)];
+    box.querySelector("[data-title]").textContent = s.title;
+    box.querySelector("[data-desc]").textContent = s.description;
+    const em = box.querySelector("[data-emoji]");
+    if (em) em.textContent = s.emoji;
+  };
+  fill();
+  onNewDay(fill);
 }
 
 /* ---------- WHAT WILL YOU DISCOVER TODAY ---------- */
@@ -136,6 +153,7 @@ function initDailyVerse() {
       if (ex) ex.textContent = v.explain;
     };
     show();
+    onNewDay(() => { i = dayIndex(VERSES.length); show(); });
     const next = box.querySelector("[data-v-next]");
     next && next.addEventListener("click", () => { i = (i + 1) % VERSES.length; show(); });
     hide && hide.addEventListener("click", () => {
