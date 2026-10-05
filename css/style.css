@@ -985,3 +985,14 @@ img, video, canvas { max-width: 100%; }
 .disc-card .disc-sub { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5; margin: 0 0 1rem; padding-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .disc-card .btn { margin-top: auto; }
 #memory, #who-am-i, #scramble, #quiz, #sling, #harp, #ask-buddy { scroll-margin-top: 110px; }
+
+/* Adventure: wide two-column layout on bigger screens */
+.featured.adventure { padding: 1.8rem 2.2rem; }
+.adv-body { display: grid; gap: 0 2rem; }
+.adv-side .adv-box:first-child { margin-top: 0; }
+@media (min-width: 900px) {
+  .adv-body { grid-template-columns: minmax(0, 1.75fr) minmax(280px, 1fr); align-items: start; }
+  .adv-side { position: sticky; top: 110px; }
+  .adv-story p { font-size: 1.1rem; }
+}
+@media (max-width: 899px) { .adv-side { margin-top: 0.4rem; } .adv-side .adv-box:first-child { margin-top: 0.9rem; } .featured.adventure { padding: 1.3rem 1.2rem; } }
