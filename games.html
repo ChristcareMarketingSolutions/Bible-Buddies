@@ -36,7 +36,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100506">
+  <link rel="stylesheet" href="css/style.css?v=2026100507">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -92,7 +92,7 @@
     <section class="section"><div class="container">
 
       <!-- MEMORY MATCH -->
-      <div class="section-head"><h2>🧠 Bible Memory Match</h2><p>Tap two cards to turn them over. Find each Bible hero and their picture, like <strong>Noah</strong> and the <strong>🚢 Ark</strong>! Every game has a new mix of heroes.</p></div>
+      <div class="section-head" id="memory"><h2>🧠 Bible Memory Match</h2><p>Tap two cards to turn them over. Find each Bible hero and their picture, like <strong>Noah</strong> and the <strong>🚢 Ark</strong>! Every game has a new mix of heroes.</p></div>
       <div class="game-stage reveal" style="margin-bottom:2.5rem">
         <div class="mem-levels" role="group" aria-label="Choose a level">
           <button type="button" class="filter-btn" data-mem-level="easy">🐣 Easy · 6 pairs</button>
@@ -106,7 +106,7 @@
       </div>
 
       <!-- WHO AM I -->
-      <div class="section-head"><h2>❓ Who Am I?</h2><p>Read the clues and guess the Bible character.</p></div>
+      <div class="section-head" id="who-am-i"><h2>❓ Who Am I?</h2><p>Read the clues and guess the Bible character.</p></div>
       <div class="game-stage reveal" data-whoami style="margin-bottom:2.5rem">
         <div class="q-clue" data-clue></div>
         <div class="q-options" data-options></div>
@@ -115,7 +115,7 @@
       </div>
 
       <!-- WORD SCRAMBLE -->
-      <div class="section-head"><h2>🔤 Word Scramble</h2><p>Unscramble the Bible word. Type your answer!</p></div>
+      <div class="section-head" id="scramble"><h2>🔤 Word Scramble</h2><p>Unscramble the Bible word. Type your answer!</p></div>
       <div class="game-stage reveal" data-scramble style="margin-bottom:2.5rem">
         <div class="game-hud"><span>Score: <b data-scramble-score>0</b></span></div>
         <div class="scramble-word" data-scramble-word></div>
@@ -128,7 +128,7 @@
       </div>
 
       <!-- QUIZ -->
-      <div class="section-head"><h2>⭐ Bible Quiz</h2><p>Answer the questions and earn your Bible Buddy Score.</p></div>
+      <div class="section-head" id="quiz"><h2>⭐ Bible Quiz</h2><p>Answer the questions and earn your Bible Buddy Score.</p></div>
       <div class="game-stage reveal" data-quiz>
         <div class="progress-track"><div class="progress-fill" data-q-fill></div></div>
         <div data-q-panel>
@@ -142,7 +142,7 @@
       </div>
 
       <!-- DAVID'S SLING -->
-      <div class="section-head"><h2>🪨 David's Sling</h2><p>50 worry balloons float up into the sky. Tap a balloon to throw a stone and pop it before it floats away! You can also pull the sling back and let go, or use the arrow keys and space.</p></div>
+      <div class="section-head" id="sling"><h2>🪨 David's Sling</h2><p>50 worry balloons float up into the sky. Tap a balloon to throw a stone and pop it before it floats away! You can also pull the sling back and let go, or use the arrow keys and space.</p></div>
       <div class="game-stage reveal" style="margin-bottom:2.5rem">
         <div class="game-hud"><span>🎈 Popped: <b data-sling-score>0</b></span><span>💨 Missed: <b data-sling-missed>0</b></span><span>Still to come: <b data-sling-left>50</b></span></div>
         <canvas class="sling-canvas" data-sling-canvas width="640" height="360" tabindex="0" aria-label="David's sling game. Balloons float up from the bottom. Tap a balloon to throw a stone at it, or use the arrow keys to aim and the space bar to throw."></canvas>
@@ -151,7 +151,7 @@
       </div>
 
       <!-- DAVID'S HARP -->
-      <div class="section-head"><h2>🎵 David's Harp</h2><p>Pluck the strings to make music like David. Then tap Play a tune and copy Buddy!</p></div>
+      <div class="section-head" id="harp"><h2>🎵 David's Harp</h2><p>Pluck the strings to make music like David. Then tap Play a tune and copy Buddy!</p></div>
       <div class="game-stage reveal" style="margin-bottom:2.5rem">
         <div class="game-hud"><span>Tune length: <b data-harp-level>0</b></span></div>
         <div class="harp" data-harp-strings></div>
@@ -163,7 +163,7 @@
       </div>
 
       <!-- ASK BUDDY -->
-      <div class="section-head"><h2>💬 Ask Buddy</h2><p>Tell Buddy how you feel or what you are wondering. Buddy will find a Bible story to help.</p></div>
+      <div class="section-head" id="ask-buddy"><h2>💬 Ask Buddy</h2><p>Tell Buddy how you feel or what you are wondering. Buddy will find a Bible story to help.</p></div>
       <div class="game-stage reveal">
         <div class="chat-window" data-chat-log aria-live="polite"></div>
         <div class="chat-input-row">
@@ -206,12 +206,12 @@
       <div class="search-results"></div>
     </div>
   </div>
-  <script src="js/data.js?v=2026100506"></script>
-  <script src="js/progress.js?v=2026100506"></script>
-  <script src="js/app.js?v=2026100506"></script>
-  <script src="js/games.js?v=2026100506"></script>
-  <script src="js/quiz.js?v=2026100506"></script>
-  <script src="js/helper.js?v=2026100506"></script>
+  <script src="js/data.js?v=2026100507"></script>
+  <script src="js/progress.js?v=2026100507"></script>
+  <script src="js/app.js?v=2026100507"></script>
+  <script src="js/games.js?v=2026100507"></script>
+  <script src="js/quiz.js?v=2026100507"></script>
+  <script src="js/helper.js?v=2026100507"></script>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>
