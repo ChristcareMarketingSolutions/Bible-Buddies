@@ -14,7 +14,7 @@
 const STORIES = [
   { id: "calms-storm", title: "Jesus Calms the Storm", category: "Miracles of Jesus", emoji: "🌊",
     description: "Jesus shows His friends they can trust Him even when they are afraid.",
-    readMins: 4, age: "Ages 5 to 9", comic: "", pdf: "", book: "" },
+    readMins: 4, age: "Ages 5 to 9", comic: "", pdf: "", book: "https://drive.google.com/file/d/1NMnBj_qQWVxSI3JEgox3R_MHgg25ThBL/view?usp=sharing" },
   { id: "feeds-5000", title: "Jesus Feeds the 5,000", category: "Miracles of Jesus", emoji: "🍞",
     description: "A boy's small lunch becomes a feast for thousands of people.",
     readMins: 5, age: "Ages 5 to 10", comic: "", pdf: "", book: "" },
