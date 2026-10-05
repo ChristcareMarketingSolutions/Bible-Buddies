@@ -22,6 +22,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- App Links: tapping a Bible Buddies web link opens the app instead of the browser.
+                 Verified by https://christcaremarketingsolutions.github.io/.well-known/assetlinks.json -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="christcaremarketingsolutions.github.io" />
+                <data android:pathPrefix="/Bible-Buddies" />
+            </intent-filter>
+
         </activity>
 
         <provider

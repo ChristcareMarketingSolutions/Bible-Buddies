@@ -527,6 +527,22 @@ document.addEventListener("DOMContentLoaded", () => {
     bbStopSpeaking();
     if (e && e.canGoBack) history.back(); else appPlugin.exitApp();
   });
+  // Android app: a tapped Bible Buddies web link opens the same page inside the app
+  if (appPlugin) {
+    const openLink = url => {
+      const m = String(url || "").match(/\/Bible-Buddies\/?([^?#]*)([?#].*)?$/i);
+      if (!m) return;
+      // open each link only once (the launch link is reported again on every page)
+      try {
+        const done = JSON.parse(sessionStorage.getItem("bbLinks") || "[]");
+        if (done.includes(url)) return;
+        done.push(url); sessionStorage.setItem("bbLinks", JSON.stringify(done.slice(-20)));
+      } catch (e) {}
+      location.href = (m[1] || "index.html") + (m[2] || "");
+    };
+    appPlugin.addListener("appUrlOpen", e => openLink(e && e.url));
+    if (appPlugin.getLaunchUrl) appPlugin.getLaunchUrl().then(r => r && openLink(r.url)).catch(() => {});
+  }
   // Register service worker for offline use (not needed in the app, which carries its own copy)
   if (!BB_APP && "serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});
