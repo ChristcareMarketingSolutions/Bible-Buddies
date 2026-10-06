@@ -44,6 +44,17 @@ const STORIES = [
     readMins: 5, age: "Ages 6 to 11", comic: "", pdf: "", book: "" }
 ];
 
+/* ---------- VIDEO STORIES (Stories page, top section) ----------
+   video: the Google Drive share link of the video (Share → "Anyone with the link").
+   Videos play inside the page; there is no download button.
+   To add a video, copy a { ... } block and edit it. */
+const VIDEO_STORIES = [
+  { id: "parable-of-the-sower", title: "The Parable of the Sower", emoji: "🌱", ref: "Matthew 13:1–23",
+    description: "Jesus tells a story about a farmer whose seeds fall on four kinds of ground, and explains how God's Word grows in a listening heart.",
+    age: "Ages 4 to 11", uploaded: "2026-10-06",
+    video: "https://drive.google.com/file/d/1yHHtV1JUySxDJDadyhzAGJxUFM27vbJJ/view?usp=sharing" }
+];
+
 const STORY_CATEGORIES = [
   "Stories About Jesus", "Miracles of Jesus", "Parables", "Jesus' Birth",
   "Old Testament", "New Testament", "Bible Heroes", "Easter", "God's Love"
