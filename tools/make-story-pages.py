@@ -92,10 +92,10 @@ def head(title, desc, url, ld):
   <!-- SEO -->
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="{url}">
-  <link rel="icon" href="../favicon.ico?v=4" sizes="any">
-  <link rel="icon" type="image/svg+xml" href="../images/favicon.svg?v=4">
-  <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32.png?v=4">
-  <link rel="apple-touch-icon" href="../images/apple-touch-icon.png?v=4">
+  <link rel="icon" href="../favicon-cross.ico?v=5" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="../images/cross-favicon.svg?v=5">
+  <link rel="icon" type="image/png" sizes="32x32" href="../images/cross-favicon-32.png?v=5">
+  <link rel="apple-touch-icon" href="../images/cross-apple-touch-icon.png?v=5">
   <meta property="og:site_name" content="Bible Buddies">
   <meta property="og:type" content="article">
   <meta property="og:locale" content="en_GB">

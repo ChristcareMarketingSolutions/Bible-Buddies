@@ -4,13 +4,13 @@
    offline. Images load instantly from the cache and refresh in the background.
    You no longer need to bump CACHE_VERSION on every update; only bump it if
    you rename or remove files in the ASSETS list below. */
-const CACHE_VERSION = "bible-buddies-v11";
+const CACHE_VERSION = "bible-buddies-v12";
 const ASSETS = [
   "index.html", "stories.html", "story.html", "js/video-glimpses.js", "comics.html", "games.html", "colouring.html",
   "explorer.html", "memory-verses.html", "meet-jesus.html", "teachers.html",
   "about.html", "contact.html", "404.html", "journey.html",
   "css/style.css", "js/data.js", "js/adventures.js", "js/app.js", "js/progress.js", "js/games.js", "js/quiz.js", "js/helper.js", "js/journey-stops.js", "js/journey.js", "js/vendor/three.min.js",
-  "manifest.json", "favicon.ico", "images/logo.png", "images/favicon.svg", "images/favicon-32.png", "images/favicon-48.png", "images/apple-touch-icon.png", "images/icon-192.png", "images/icon-512.png"
+  "manifest.json", "favicon-cross.ico", "images/logo.png", "images/cross-favicon.svg", "images/cross-favicon-32.png", "images/cross-favicon-48.png", "images/cross-apple-touch-icon.png", "images/cross-icon-192.png", "images/cross-icon-512.png"
 ];
 
 self.addEventListener("install", e => {
