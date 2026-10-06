@@ -56,7 +56,8 @@ const VIDEO_STORIES = [
     video: "https://youtu.be/qe0wh9AjHVU" },
   // Coming soon: leave video "" and the card shows "Coming soon" until you paste the link.
   { id: "noahs-ark", title: "Noah's Ark", emoji: "🌈", ref: "Genesis 6–9",
-    description: "Noah trusts God, builds a giant ark and sees God's rainbow promise.", age: "Ages 4 to 11", video: "" },
+    description: "Noah trusts God, builds a giant ark and sees God's rainbow promise.", age: "Ages 4 to 11", uploaded: "2026-10-06",
+    video: "https://youtu.be/mY6Yspv_BFE" },
   { id: "david-and-goliath", title: "David and Goliath", emoji: "🪨", ref: "1 Samuel 17",
     description: "A young shepherd trusts God and faces a giant with a sling and a stone.", age: "Ages 4 to 11", video: "" },
   { id: "jonah-and-the-big-fish", title: "Jonah and the Big Fish", emoji: "🐋", ref: "Jonah 1–3",
