@@ -307,6 +307,18 @@ function driveId(link) {
 const drivePreviewUrl  = id => `https://drive.google.com/file/d/${id}/preview`;
 const driveDownloadUrl = id => `https://drive.google.com/uc?export=download&id=${id}`;
 
+/* Video links for Video Stories: a YouTube link (youtu.be/…, youtube.com/watch?v=…,
+   /shorts/…) or a Google Drive link. Returns the player and thumbnail addresses. */
+function bbVideo(link) {
+  const y = String(link || "").match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  if (y) return { kind: "youtube", id: y[1],
+    embed: `https://www.youtube-nocookie.com/embed/${y[1]}?autoplay=1&rel=0&modestbranding=1&playsinline=1`,
+    thumb: `https://i.ytimg.com/vi/${y[1]}/hqdefault.jpg` };
+  const d = driveId(link);
+  if (d) return { kind: "drive", id: d, embed: drivePreviewUrl(d), thumb: `https://drive.google.com/thumbnail?id=${d}&sz=w640` };
+  return null;
+}
+
 /* ---------- SHARING (for grown-ups) ----------
    Uses the phone's own share sheet when there is one; otherwise shows
    WhatsApp, Facebook, X, email and copy-link buttons. */
