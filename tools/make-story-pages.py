@@ -73,7 +73,7 @@ head_end = tpl.index("  <!-- SEO -->")
 head_after = tpl[tpl.index("  <!-- /SEO -->") + len("  <!-- /SEO -->"):tpl.index("</head>")]
 body_start = tpl[tpl.index("<body"):tpl.index("  <main id=\"main\">")]
 body_end = tpl[tpl.index("  </main>") + len("  </main>"):tpl.index("  <script src=\"js/data.js")]
-scripts = re.findall(r'  <script src="js/[^"]+"></script>\n', tpl)
+scripts = [x for x in re.findall(r'  <script src="js/[^"]+"></script>\n', tpl) if "video-glimpses" not in x]
 version = re.search(r"js/app\.js\?v=(\w+)", tpl).group(1)
 
 def up(fragment):

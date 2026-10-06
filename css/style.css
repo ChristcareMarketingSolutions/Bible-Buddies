@@ -1062,3 +1062,22 @@ img, video, canvas { max-width: 100%; }
   padding: 0.25rem 0.75rem; border-radius: 999px; border: 2px solid var(--ink); }
 .vs-soon { cursor: default; }
 .vs-soon strong { color: var(--ink-soft); }
+
+/* Video player: "The story in short" (compact, scrolls inside so the box stays short) */
+.vs-glimpse-wrap { margin-top: 0.9rem; }
+.vs-glimpse-h { margin: 0 0 0.4rem; font-size: 1rem; color: var(--grape-deep); }
+.vs-glimpse { max-height: min(34vh, 300px); overflow-y: auto; font-size: 0.9rem; line-height: 1.5; color: var(--ink);
+  background: var(--parchment); border: 2px solid #EADFC8; border-radius: var(--radius); padding: 0.7rem 0.95rem; }
+.vs-glimpse p { margin: 0 0 0.5rem; }
+.vs-glimpse .g-list { color: var(--ink-soft); }
+.vs-glimpse h4, .vs-glimpse h5, .vs-glimpse h6 { margin: 0.75rem 0 0.3rem; line-height: 1.3; color: var(--grape-deep); font-size: 1rem; }
+.vs-glimpse h4:first-child { margin-top: 0; font-size: 1.05rem; }
+.vs-glimpse h6 { font-size: 0.93rem; color: var(--sky-deep); }
+@media (max-width: 640px) { .vs-glimpse { max-height: 40vh; font-size: 0.88rem; } }
+@media (min-width: 1000px) {
+  .vs-box { max-width: 1180px; }
+  .vs-body { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); gap: 1.1rem; align-items: stretch; }
+  .vs-body .vs-desc { grid-column: 1 / -1; }
+  .vs-body .vs-glimpse-wrap { margin-top: 0; position: relative; min-height: 0; }
+  .vs-body .vs-glimpse { position: absolute; top: 1.7rem; bottom: 0; left: 0; right: 0; max-height: none; }
+}

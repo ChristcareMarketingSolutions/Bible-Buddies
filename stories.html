@@ -37,7 +37,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100605">
+  <link rel="stylesheet" href="css/style.css?v=2026100606">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -134,19 +134,26 @@
       <div class="search-results"></div>
     </div>
   </div>
-  <script src="js/data.js?v=2026100605"></script>
-  <script src="js/progress.js?v=2026100605"></script>
-  <script src="js/app.js?v=2026100605"></script>
+  <script src="js/data.js?v=2026100606"></script>
+  <script src="js/progress.js?v=2026100606"></script>
+  <script src="js/video-glimpses.js?v=2026100606"></script>
+  <script src="js/app.js?v=2026100606"></script>
   <div class="modal vs-modal" id="video-modal" role="dialog" aria-modal="true" aria-labelledby="vs-title">
     <div class="modal-box vs-box">
       <button class="modal-close" data-vs-close aria-label="Close video">✕</button>
       <h2 id="vs-title" data-vs-title>Video</h2>
       <p class="vs-ref" data-vs-ref></p>
+      <div class="vs-body">
       <div class="vs-frame" data-vs-frame>
         <!-- covers the player's "open in new window" corner so the video stays on our page -->
         <div class="vs-shield" aria-hidden="true"></div>
       </div>
       <p class="vs-desc" data-vs-desc></p>
+      <section class="vs-glimpse-wrap" data-vs-glimpse-wrap hidden>
+        <h3 class="vs-glimpse-h">📖 The story in short</h3>
+        <div class="vs-glimpse" data-vs-glimpse tabindex="0"></div>
+      </section>
+      </div>
     </div>
   </div>
   <script>
@@ -170,7 +177,10 @@
       lastFocus = document.activeElement;
       modal.querySelector("[data-vs-title]").textContent = v.title;
       modal.querySelector("[data-vs-ref]").textContent = "📖 " + v.ref;
-      modal.querySelector("[data-vs-desc]").textContent = v.description;
+      const glimpse = typeof VIDEO_GLIMPSES !== "undefined" && VIDEO_GLIMPSES[v.id];
+      const desc = modal.querySelector("[data-vs-desc]"), gw = modal.querySelector("[data-vs-glimpse-wrap]"), g = modal.querySelector("[data-vs-glimpse]");
+      desc.textContent = v.description; desc.hidden = !!glimpse;
+      gw.hidden = !glimpse; g.innerHTML = glimpse ? renderGlimpse(glimpse) : ""; g.scrollTop = 0;
       frame.querySelectorAll("iframe").forEach(f => f.remove());
       const f = document.createElement("iframe");
       f.src = bbVideo(v.video).embed; f.title = v.title + " (video)";
@@ -180,6 +190,35 @@
       modal.classList.add("open");
       try { history.replaceState(null, "", "#video-" + v.id); } catch (e) {}
       modal.querySelector("[data-vs-close]").focus();
+    }
+    /* Glimpse text (simple Markdown) -> compact HTML: short lines in a section flow into one
+       paragraph; emoji-led lines and lines ending in two spaces become a dotted list. */
+    function renderGlimpse(md) {
+      const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const inline = t => esc(t.trim()).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      const isList = t => /^[^\p{L}\p{N}“"'*(]/u.test(t.trim());
+      let html = "", text = [], list = [];
+      const flush = () => {
+        if (text.length) { html += `<p>${text.join(" ")}</p>`; text = []; }
+        if (list.length) { html += `<p class="g-list">${list.join(' <span aria-hidden="true">·</span> ')}</p>`; list = []; }
+      };
+      md.trim().split(/\n\s*\n/).forEach(block => {
+        const b = block.replace(/\s+$/, "");
+        const h = b.match(/^(#{1,3})\s+(.*)$/);
+        if (h) { flush(); html += `<h${h[1].length + 3}>${inline(h[2])}</h${h[1].length + 3}>`; return; }
+        if (/^-{3,}$/.test(b.trim())) { flush(); return; }
+        const lines = block.split("\n");
+        if (lines.length > 1 && lines.some(l => / {2}$/.test(l))) {   // "item  \nitem" list
+          if (text.length) flush();
+          lines.forEach(l => l.trim() && list.push(inline(l)));
+          return;
+        }
+        const t = inline(lines.join(" "));
+        if (isList(b)) { if (text.length) flush(); list.push(t); }
+        else { if (list.length) flush(); text.push(t); }
+      });
+      flush();
+      return html;
     }
     function close() {
       modal.classList.remove("open");
