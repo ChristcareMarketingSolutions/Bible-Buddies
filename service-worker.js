@@ -6,7 +6,7 @@
    you rename or remove files in the ASSETS list below. */
 const CACHE_VERSION = "bible-buddies-v11";
 const ASSETS = [
-  "index.html", "stories.html", "story.html", "comics.html", "games.html", "colouring.html",
+  "index.html", "stories.html", "story.html", "js/video-glimpses.js", "comics.html", "games.html", "colouring.html",
   "explorer.html", "memory-verses.html", "meet-jesus.html", "teachers.html",
   "about.html", "contact.html", "404.html", "journey.html",
   "css/style.css", "js/data.js", "js/adventures.js", "js/app.js", "js/progress.js", "js/games.js", "js/quiz.js", "js/helper.js", "js/journey-stops.js", "js/journey.js", "js/vendor/three.min.js",
