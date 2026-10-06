@@ -63,7 +63,11 @@ const VIDEO_STORIES = [
   { id: "the-good-samaritan", title: "The Good Samaritan", emoji: "🤝", ref: "Luke 10:25–37",
     description: "Jesus tells a story about a kind stranger who shows us how to love our neighbour.", age: "Ages 4 to 11", video: "" },
   { id: "jesus-is-born", title: "Jesus Is Born", emoji: "⭐", ref: "Luke 2:1–20",
-    description: "Angels, shepherds and a baby in a manger: the very first Christmas.", age: "Ages 4 to 11", video: "" }
+    description: "Angels, shepherds and a baby in a manger: the very first Christmas.", age: "Ages 4 to 11", video: "" },
+  { id: "daniel-and-the-lions", title: "Daniel in the Lions' Den", emoji: "🦁", ref: "Daniel 6",
+    description: "Daniel keeps praying to God, and God shuts the lions' mouths.", age: "Ages 4 to 11", video: "" },
+  { id: "the-lost-sheep", title: "The Lost Sheep", emoji: "🐑", ref: "Luke 15:1–7",
+    description: "A shepherd searches for one lost sheep, because every one matters to God.", age: "Ages 4 to 11", video: "" }
 ];
 
 const STORY_CATEGORIES = [

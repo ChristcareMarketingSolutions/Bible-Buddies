@@ -1034,7 +1034,9 @@ img, video, canvas { max-width: 100%; }
 
 /* Video Stories (Stories page) */
 .vs-section { padding-bottom: 0.5rem; }
-.vs-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.vs-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .vs-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .vs-grid { grid-template-columns: repeat(4, 1fr); } }
 .vs-card { display: flex; flex-direction: column; gap: 0.35rem; text-align: left; font: inherit; color: var(--ink); cursor: pointer; padding: 0.8rem; }
 .vs-card strong { font-family: var(--font-head); font-size: 1.15rem; color: var(--grape-deep); }
 .vs-card small { color: var(--sky-deep); font-weight: 800; }
