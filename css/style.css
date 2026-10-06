@@ -1031,3 +1031,34 @@ img, video, canvas { max-width: 100%; }
 .sl-lesson ol { padding-left: 1.5rem; margin: 0.4rem 0 0; }
 .sl-lesson li { margin-bottom: 0.3rem; }
 .wj-cta { text-align: center; margin: 0.4rem 0 1.2rem; }
+
+/* Video Stories (Stories page) */
+.vs-section { padding-bottom: 0.5rem; }
+.vs-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .vs-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .vs-grid { grid-template-columns: repeat(4, 1fr); } }
+.vs-card { display: flex; flex-direction: column; gap: 0.35rem; text-align: left; font: inherit; color: var(--ink); cursor: pointer; padding: 0.8rem; }
+.vs-card strong { font-family: var(--font-head); font-size: 1.15rem; color: var(--grape-deep); }
+.vs-card small { color: var(--sky-deep); font-weight: 800; }
+.vs-blurb { color: var(--ink-soft); font-size: 0.95rem; }
+.vs-thumb { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden;
+  background: linear-gradient(135deg, var(--grape), var(--sky-deep)); margin-bottom: 0.3rem; }
+.vs-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vs-emoji { position: absolute; top: 0.5rem; left: 0.7rem; font-size: 2rem; }
+.vs-thumb img ~ .vs-emoji { display: none; }
+.vs-play { position: absolute; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 1.6rem;
+  background: rgba(255,255,255,.92); color: var(--grape-deep); border: 3px solid var(--ink); box-shadow: 0 4px 0 rgba(0,0,0,.2); }
+.vs-card:hover .vs-play, .vs-card:focus-visible .vs-play { transform: scale(1.08); }
+.vs-box { max-width: 900px; width: calc(100% - 1.5rem); }
+.vs-box h2 { margin: 0 2.5rem 0.2rem 0; color: var(--grape-deep); }
+.vs-ref { margin: 0 0 0.8rem; font-weight: 800; color: var(--sky-deep); }
+.vs-frame { position: relative; aspect-ratio: 16 / 9; background: #000; border-radius: var(--radius); overflow: hidden; }
+.vs-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.vs-shield { position: absolute; top: 0; right: 0; width: 72px; height: 64px; z-index: 2; }
+.vs-desc { margin: 0.8rem 0 0; color: var(--ink-soft); }
+.vs-soon .vs-thumb { background: linear-gradient(135deg, #B9A9DD, #A9D5EE); }
+.vs-soon .vs-emoji { position: static; font-size: 3rem; }
+.vs-badge { position: absolute; bottom: 0.6rem; right: 0.6rem; background: var(--sun); color: var(--ink); font-weight: 800; font-size: 0.85rem;
+  padding: 0.25rem 0.75rem; border-radius: 999px; border: 2px solid var(--ink); }
+.vs-soon { cursor: default; }
+.vs-soon strong { color: var(--ink-soft); }

@@ -30,13 +30,14 @@
   <meta name="twitter:image" content="https://christcaremarketingsolutions.github.io/Bible-Buddies/images/og-image.jpg">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://christcaremarketingsolutions.github.io/Bible-Buddies/"}, {"@type": "ListItem", "position": 2, "name": "Bible Stories", "item": "https://christcaremarketingsolutions.github.io/Bible-Buddies/stories.html"}]}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Free Bible Stories for Kids | Short & Easy to Read", "description": "Free Bible stories for children: Jesus' miracles, parables, Noah's Ark, David and Goliath and more, told simply for kids aged 4 to 11.", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/stories.html", "image": "https://christcaremarketingsolutions.github.io/Bible-Buddies/images/og-image.jpg", "inLanguage": "en", "isAccessibleForFree": true, "audience": {"@type": "PeopleAudience", "suggestedMinAge": 4, "suggestedMaxAge": 11}, "educationalLevel": "Children aged 4 to 11", "learningResourceType": "Bible stories", "about": {"@type": "Thing", "name": "The Bible"}, "publisher": {"@type": "Organization", "name": "Bible Buddies", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "VideoObject", "name": "The Parable of the Sower: Bible Story Video for Kids", "description": "Jesus tells a story about a farmer whose seeds fall on four kinds of ground, and explains how God's Word grows in a listening heart (Matthew 13:1–23). A Bible story video for kids aged 4 to 11.", "thumbnailUrl": "https://drive.google.com/thumbnail?id=1yHHtV1JUySxDJDadyhzAGJxUFM27vbJJ&sz=w1280", "uploadDate": "2026-10-06", "embedUrl": "https://drive.google.com/file/d/1yHHtV1JUySxDJDadyhzAGJxUFM27vbJJ/preview", "inLanguage": "en", "isFamilyFriendly": true, "publisher": {"@type": "Organization", "name": "Bible Buddies", "url": "https://christcaremarketingsolutions.github.io/Bible-Buddies/"}}</script>
   <!-- /SEO -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4CB4E7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100601">
+  <link rel="stylesheet" href="css/style.css?v=2026100604">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -89,6 +90,10 @@
         <p style="font-size:1rem;max-width:45ch;margin:.5rem auto 0">Read wonderful, easy Bible stories for children. Tap a story to open it.</p>
       </div>
     </section>
+    <section class="section vs-section" id="video-stories"><div class="container">
+      <div class="section-head"><h2>🎬 Video Stories</h2><p>Watch Bible stories come to life. Tap a video to play it.</p></div>
+      <div class="vs-grid" data-video-grid></div>
+    </div></section>
     <section class="section"><div class="container">
       <p class="sl-library-link">📚 Want to read now? Visit the <a href="bible-stories/">Bible Story Library</a>: 30 Bible stories you can read online.</p>
       <div class="filter-bar" data-story-filter></div>
@@ -129,9 +134,68 @@
       <div class="search-results"></div>
     </div>
   </div>
-  <script src="js/data.js?v=2026100601"></script>
-  <script src="js/progress.js?v=2026100601"></script>
-  <script src="js/app.js?v=2026100601"></script>
+  <script src="js/data.js?v=2026100604"></script>
+  <script src="js/progress.js?v=2026100604"></script>
+  <script src="js/app.js?v=2026100604"></script>
+  <div class="modal vs-modal" id="video-modal" role="dialog" aria-modal="true" aria-labelledby="vs-title">
+    <div class="modal-box vs-box">
+      <button class="modal-close" data-vs-close aria-label="Close video">✕</button>
+      <h2 id="vs-title" data-vs-title>Video</h2>
+      <p class="vs-ref" data-vs-ref></p>
+      <div class="vs-frame" data-vs-frame>
+        <!-- covers the player's "open in new window" corner so the video stays on our page -->
+        <div class="vs-shield" aria-hidden="true"></div>
+      </div>
+      <p class="vs-desc" data-vs-desc></p>
+    </div>
+  </div>
+  <script>
+  /* Video Stories: cards open a player on this page (no download button). */
+  (function(){
+    const grid = document.querySelector("[data-video-grid]");
+    if (!grid || typeof VIDEO_STORIES === "undefined") return;
+    const modal = document.getElementById("video-modal"), frame = modal.querySelector("[data-vs-frame]");
+    let lastFocus = null;
+    const thumb = id => `https://drive.google.com/thumbnail?id=${id}&sz=w640`;
+    VIDEO_STORIES.forEach(v => {
+      const id = driveId(v.video);
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "card vs-card" + (id ? "" : " vs-soon"); b.dataset.video = v.id;
+      b.innerHTML = `<span class="vs-thumb">${id ? `<img src="${thumb(id)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span class="vs-emoji" aria-hidden="true">${v.emoji}</span>${id ? '<span class="vs-play" aria-hidden="true">▶</span>' : '<span class="vs-badge">Coming soon</span>'}</span>
+        <strong>${v.title}</strong><small>📖 ${v.ref} · ${v.age}</small><span class="vs-blurb">${v.description}</span>`;
+      b.setAttribute("aria-label", id ? `Play video: ${v.title}` : `${v.title}: video coming soon`);
+      b.addEventListener("click", () => id ? open(v) : bbToast("This video story is coming soon! 🎬"));
+      grid.append(b);
+    });
+    function open(v) {
+      lastFocus = document.activeElement;
+      modal.querySelector("[data-vs-title]").textContent = v.title;
+      modal.querySelector("[data-vs-ref]").textContent = "📖 " + v.ref;
+      modal.querySelector("[data-vs-desc]").textContent = v.description;
+      frame.querySelectorAll("iframe").forEach(f => f.remove());
+      const f = document.createElement("iframe");
+      f.src = drivePreviewUrl(driveId(v.video)); f.title = v.title + " (video)";
+      f.allow = "autoplay; fullscreen"; f.setAttribute("allowfullscreen", "");
+      frame.prepend(f);
+      modal.classList.add("open");
+      try { history.replaceState(null, "", "#video-" + v.id); } catch (e) {}
+      modal.querySelector("[data-vs-close]").focus();
+    }
+    function close() {
+      modal.classList.remove("open");
+      frame.querySelectorAll("iframe").forEach(f => f.remove());   // stops the video
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+      if (lastFocus) lastFocus.focus();
+    }
+    modal.querySelector("[data-vs-close]").addEventListener("click", close);
+    modal.addEventListener("click", e => { if (e.target === modal) close(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && modal.classList.contains("open")) close(); });
+    // shared link straight to a video: stories.html#video-<id>
+    const m = location.hash.match(/^#video-(.+)$/);
+    const start = m && VIDEO_STORIES.find(v => v.id === m[1] && driveId(v.video));
+    if (start) open(start);
+  })();
+  </script>
   <script>
   (function(){
     const grid = document.querySelector("[data-story-grid]");

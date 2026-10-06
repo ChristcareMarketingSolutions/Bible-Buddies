@@ -527,7 +527,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const appPlugin = bbPlugin("App");
   if (appPlugin) appPlugin.addListener("backButton", e => {
     const open = document.querySelector(".modal.open");
-    if (open) { open.classList.remove("open"); return; }
+    if (open) { const x = open.querySelector(".modal-close"); if (x) x.click(); else open.classList.remove("open"); return; }
     const menu = document.querySelector(".nav-toggle[aria-expanded='true']");
     if (menu) { menu.click(); return; }
     bbStopSpeaking();
