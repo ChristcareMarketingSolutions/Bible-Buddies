@@ -52,7 +52,18 @@ const VIDEO_STORIES = [
   { id: "parable-of-the-sower", title: "The Parable of the Sower", emoji: "🌱", ref: "Matthew 13:1–23",
     description: "Jesus tells a story about a farmer whose seeds fall on four kinds of ground, and explains how God's Word grows in a listening heart.",
     age: "Ages 4 to 11", uploaded: "2026-10-06",
-    video: "https://drive.google.com/file/d/1yHHtV1JUySxDJDadyhzAGJxUFM27vbJJ/view?usp=sharing" }
+    video: "https://drive.google.com/file/d/1yHHtV1JUySxDJDadyhzAGJxUFM27vbJJ/view?usp=sharing" },
+  // Coming soon: leave video "" and the card shows "Coming soon" until you paste the link.
+  { id: "noahs-ark", title: "Noah's Ark", emoji: "🌈", ref: "Genesis 6–9",
+    description: "Noah trusts God, builds a giant ark and sees God's rainbow promise.", age: "Ages 4 to 11", video: "" },
+  { id: "david-and-goliath", title: "David and Goliath", emoji: "🪨", ref: "1 Samuel 17",
+    description: "A young shepherd trusts God and faces a giant with a sling and a stone.", age: "Ages 4 to 11", video: "" },
+  { id: "jonah-and-the-big-fish", title: "Jonah and the Big Fish", emoji: "🐋", ref: "Jonah 1–3",
+    description: "Jonah runs from God, is swallowed by a big fish and gets a second chance.", age: "Ages 4 to 11", video: "" },
+  { id: "the-good-samaritan", title: "The Good Samaritan", emoji: "🤝", ref: "Luke 10:25–37",
+    description: "Jesus tells a story about a kind stranger who shows us how to love our neighbour.", age: "Ages 4 to 11", video: "" },
+  { id: "jesus-is-born", title: "Jesus Is Born", emoji: "⭐", ref: "Luke 2:1–20",
+    description: "Angels, shepherds and a baby in a manger: the very first Christmas.", age: "Ages 4 to 11", video: "" }
 ];
 
 const STORY_CATEGORIES = [
