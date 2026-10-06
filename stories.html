@@ -38,7 +38,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2026100609">
+  <link rel="stylesheet" href="css/style.css?v=2026100610">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -135,15 +135,15 @@
       <div class="search-results"></div>
     </div>
   </div>
-  <script src="js/data.js?v=2026100609"></script>
-  <script src="js/progress.js?v=2026100609"></script>
-  <script src="js/video-glimpses.js?v=2026100609"></script>
-  <script src="js/app.js?v=2026100609"></script>
+  <script src="js/data.js?v=2026100610"></script>
+  <script src="js/progress.js?v=2026100610"></script>
+  <script src="js/video-glimpses.js?v=2026100610"></script>
+  <script src="js/app.js?v=2026100610"></script>
   <div class="modal vs-modal" id="video-modal" role="dialog" aria-modal="true" aria-labelledby="vs-title">
     <div class="modal-box vs-box">
       <button class="modal-close" data-vs-close aria-label="Close video">✕</button>
       <h2 id="vs-title" data-vs-title>Video</h2>
-      <p class="vs-ref" data-vs-ref></p>
+      <p class="vs-ref"><span data-vs-ref></span> <button type="button" class="vs-share-inline" data-vs-share>📤 Share this video</button></p>
       <div class="vs-body">
       <div class="vs-frame" data-vs-frame>
         <!-- covers the player's "open in new window" corner so the video stays on our page -->
@@ -164,18 +164,45 @@
     if (!grid || typeof VIDEO_STORIES === "undefined") return;
     const modal = document.getElementById("video-modal"), frame = modal.querySelector("[data-vs-frame]");
     let lastFocus = null;
+    // each video has its own share page (videos/<id>.html) whose preview picture is the video thumbnail
+    const shareUrl = v => (typeof SITE_URL !== "undefined" ? SITE_URL : BB_BASE) + "videos/" + v.id + ".html";
+    const thumbFiles = {};
+    function prepThumb(v) {   // fetch the thumbnail now, so sharing can attach it straight after a tap
+      const vid = bbVideo(v.video); if (!vid || thumbFiles[v.id] !== undefined || !navigator.canShare) return;
+      thumbFiles[v.id] = null;
+      fetch(vid.thumb, { mode: "cors" }).then(r => r.ok ? r.blob() : null).then(b => {
+        if (b && b.type.startsWith("image/")) thumbFiles[v.id] = new File([b], v.id + ".jpg", { type: b.type });
+      }).catch(() => {});
+    }
+    function shareVideo(v) {
+      bbShare({ url: shareUrl(v), title: v.title + ": Bible story video for kids",
+        text: `Watch "${v.title}", a free Bible story video for kids on Bible Buddies!`,
+        files: thumbFiles[v.id] ? [thumbFiles[v.id]] : null });
+    }
     VIDEO_STORIES.forEach(v => {
       const vid = bbVideo(v.video), id = vid && vid.id;
+      const item = document.createElement("div"); item.className = "vs-item";
       const b = document.createElement("button");
       b.type = "button"; b.className = "card vs-card" + (id ? "" : " vs-soon"); b.dataset.video = v.id;
       b.innerHTML = `<span class="vs-thumb">${id ? `<img src="${vid.thumb}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span class="vs-emoji" aria-hidden="true">${v.emoji}</span>${id ? '<span class="vs-play" aria-hidden="true">▶</span>' : '<span class="vs-badge">Coming soon</span>'}</span>
         <strong>${v.title}</strong><small>📖 ${v.ref} · ${v.age}</small><span class="vs-blurb">${v.description}</span>`;
       b.setAttribute("aria-label", id ? `Play video: ${v.title}` : `${v.title}: video coming soon`);
       b.addEventListener("click", () => id ? open(v) : bbToast("This video story is coming soon! 🎬"));
-      grid.append(b);
+      item.append(b);
+      if (id) {
+        const sh = document.createElement("button");
+        sh.type = "button"; sh.className = "vs-share"; sh.innerHTML = "📤 <span>Share</span>";
+        sh.setAttribute("aria-label", "Share the video " + v.title);
+        sh.addEventListener("click", () => shareVideo(v));
+        item.append(sh);
+        prepThumb(v);
+      }
+      grid.append(item);
     });
+    let current = null;
+    modal.querySelector("[data-vs-share]").addEventListener("click", () => current && shareVideo(current));
     function open(v) {
-      lastFocus = document.activeElement;
+      lastFocus = document.activeElement; current = v;
       modal.querySelector("[data-vs-title]").textContent = v.title;
       modal.querySelector("[data-vs-ref]").textContent = "📖 " + v.ref;
       const glimpse = typeof VIDEO_GLIMPSES !== "undefined" && VIDEO_GLIMPSES[v.id];
