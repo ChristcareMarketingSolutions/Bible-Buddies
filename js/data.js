@@ -53,7 +53,7 @@ const VIDEO_STORIES = [
   { id: "parable-of-the-sower", title: "The Parable of the Sower", emoji: "🌱", ref: "Matthew 13:1–23",
     description: "Jesus tells a story about a farmer whose seeds fall on four kinds of ground, and explains how God's Word grows in a listening heart.",
     age: "Ages 4 to 11", uploaded: "2026-10-06",
-    video: "https://youtu.be/qe0wh9AjHVU" },
+    video: "https://youtu.be/mSueqc7gLOE" },
   // Coming soon: leave video "" and the card shows "Coming soon" until you paste the link.
   { id: "noahs-ark", title: "Noah's Ark", emoji: "🌈", ref: "Genesis 6–9",
     description: "Noah trusts God, builds a giant ark and sees God's rainbow promise.", age: "Ages 4 to 11", uploaded: "2026-10-06",
