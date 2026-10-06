@@ -337,6 +337,60 @@ wmain = f'''  <main id="main">
   </main>'''
 (WOUT / "index.html").write_text(head(wi_title, wi_desc, wi_url, wld).replace('content="article"', 'content="website"').replace(OG_IMAGE, WALK_IMG) + walk_body + wmain + foot())
 
+# ---------- Video share pages: videos/<id>.html ----------
+# Link previews (WhatsApp, Facebook…) read the page's og:image, so each video gets a tiny page
+# whose preview is the video's own thumbnail. People who open it go straight to the video.
+VIDS = json.loads(subprocess.check_output(
+    ["node", "-e", "const fs=require('fs');eval(fs.readFileSync(process.argv[1],'utf8').replace(/^const (\\w+)/gm,'global.$1'));process.stdout.write(JSON.stringify(VIDEO_STORIES))",
+     str(ROOT / "js/data.js")]))
+def video_thumb(link):
+    m = re.search(r"(?:youtu\.be/|youtube(?:-nocookie)?\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/|live/))([\w-]{11})", link or "")
+    if m: return f"https://i.ytimg.com/vi/{m.group(1)}/hqdefault.jpg", 480, 360
+    d = re.search(r"/d/([\w-]{20,})", link or "")
+    if d: return f"https://drive.google.com/thumbnail?id={d.group(1)}&sz=w1200", 1200, 675
+    return None
+VOUT = ROOT / "videos"; VOUT.mkdir(exist_ok=True)
+for old in VOUT.glob("*.html"): old.unlink()
+nvid = 0
+for v in VIDS:
+    th = video_thumb(v.get("video", ""))
+    if not th: continue
+    img, w, h = th; url = f"{SITE}videos/{v['id']}.html"
+    title = f"{v['title']}: Bible Story Video for Kids | Bible Buddies"
+    desc = f"{v['description']} Watch free on Bible Buddies ({v['ref']})."
+    (VOUT / f"{v['id']}.html").write_text(f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{esc(title)}</title>
+  <meta name="description" content="{esc(desc)}">
+  <meta name="robots" content="noindex, follow">
+  <link rel="canonical" href="{SITE}stories.html">
+  <link rel="icon" href="../favicon-cross.ico?v=5" sizes="any">
+  <meta property="og:site_name" content="Bible Buddies">
+  <meta property="og:type" content="video.other">
+  <meta property="og:title" content="{esc(v['title'])}: Bible Story Video for Kids">
+  <meta property="og:description" content="{esc(desc)}">
+  <meta property="og:url" content="{url}">
+  <meta property="og:image" content="{img}">
+  <meta property="og:image:width" content="{w}">
+  <meta property="og:image:height" content="{h}">
+  <meta property="og:image:alt" content="{esc(v['title'])} video thumbnail">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{esc(v['title'])}: Bible Story Video for Kids">
+  <meta name="twitter:description" content="{esc(desc)}">
+  <meta name="twitter:image" content="{img}">
+  <script>location.replace("../stories.html#video-{v['id']}");</script>
+  <style>body{{font-family:sans-serif;text-align:center;padding:3rem 1rem;color:#41383B}}a{{color:#2E93C9;font-weight:bold}}</style>
+</head>
+<body>
+  <p>🎬 <a href="../stories.html#video-{v['id']}">Watch {esc(v['title'])} on Bible Buddies</a></p>
+</body>
+</html>
+''')
+    nvid += 1
+
 # ---------- Teacher Corner: list every story as a free Sunday school lesson ----------
 tp = ROOT / "teachers.html"; t = tp.read_text()
 lessons = "".join(f'<li><a href="bible-stories/{s}.html">{esc(a["title"])}</a> <small>({esc(a["ref"])})</small></li>' for s, a, i in pages)
@@ -353,4 +407,4 @@ urls = [(SITE + p, pr) for p, pr in main_pages] + [(f"{SITE}bible-stories/{s}.ht
        [(f"{SITE}walk-with-jesus/{sl}.html", "0.6") for sl, st, n in stop_pages]
 (ROOT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     "".join(f"  <url><loc>{u}</loc><lastmod>{TODAY}</lastmod><priority>{pr}</priority></url>\n" for u, pr in urls) + "</urlset>\n")
-print(f"Built {len(pages)} story pages, {len(stop_pages)} walk stop pages + 2 indexes; sitemap has {len(urls)} URLs (assets ?v={version})")
+print(f"Built {len(pages)} story pages, {len(stop_pages)} walk stop pages, {nvid} video share pages + 2 indexes; sitemap has {len(urls)} URLs (assets ?v={version})")

@@ -331,6 +331,13 @@ function bbShare(o = {}) {
   const url = o.url || bbPageUrl();
   const title = o.title || document.title;
   const text = o.text || "A free, fun Bible website for kids: stories, games and a 3D walk with Jesus!";
+  // o.files: pictures to attach (e.g. a video thumbnail), so the phone's share sheet shows them
+  if (o.files && o.files.length && navigator.canShare && navigator.canShare({ files: o.files })) {
+    navigator.share({ files: o.files, title, text: `${text}\n${url}` }).catch(err => {
+      if (err && err.name !== "AbortError") navigator.share({ title, text, url }).catch(() => {});
+    });
+    return;
+  }
   if (navigator.share) { navigator.share({ title, text, url }).catch(() => {}); return; }
   let m = document.querySelector("#share-modal");
   if (!m) {
