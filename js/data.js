@@ -45,14 +45,15 @@ const STORIES = [
 ];
 
 /* ---------- VIDEO STORIES (Stories page, top section) ----------
-   video: the Google Drive share link of the video (Share → "Anyone with the link").
+   video: the video's YouTube link (Public or Unlisted, "Made for kids") or a
+   Google Drive share link (Share → "Anyone with the link").
    Videos play inside the page; there is no download button.
    To add a video, copy a { ... } block and edit it. */
 const VIDEO_STORIES = [
   { id: "parable-of-the-sower", title: "The Parable of the Sower", emoji: "🌱", ref: "Matthew 13:1–23",
     description: "Jesus tells a story about a farmer whose seeds fall on four kinds of ground, and explains how God's Word grows in a listening heart.",
     age: "Ages 4 to 11", uploaded: "2026-10-06",
-    video: "https://drive.google.com/file/d/1yHHtV1JUySxDJDadyhzAGJxUFM27vbJJ/view?usp=sharing" },
+    video: "https://youtu.be/qe0wh9AjHVU" },
   // Coming soon: leave video "" and the card shows "Coming soon" until you paste the link.
   { id: "noahs-ark", title: "Noah's Ark", emoji: "🌈", ref: "Genesis 6–9",
     description: "Noah trusts God, builds a giant ark and sees God's rainbow promise.", age: "Ages 4 to 11", video: "" },
