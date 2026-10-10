@@ -491,7 +491,7 @@ function initDavidHarp() {
   const levelEl = document.querySelector("[data-harp-level]");
   const fbEl    = document.querySelector("[data-harp-feedback]");
   const playBtn = document.querySelector("[data-harp-play]");
-  const songBtn = document.querySelector("[data-harp-song]");
+  const songBtns = document.querySelectorAll("[data-harp-song]");
   const freeBtn = document.querySelector("[data-harp-free]");
   const W = 640, H = 420;
   const lowMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -500,8 +500,9 @@ function initDavidHarp() {
   const soundY = x => 385 - (x - 140) * 215 / 420;                 // top of the sound box (strings end here)
   const neckY  = x => { const t = (x - 110) / 470; return 50 + 60 * t - 22 * Math.sin(t * Math.PI * 2); };
 
-  // Two octaves of C major pentatonic, low (long, left) to high (short, right)
-  const FREQS = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+  // Tuned like a real harp, to the C major scale: C D E F G A B C D E,
+  // low (long, left) to high (short, right)
+  const FREQS = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25];
   const X0 = 170, GAP = 36, MAX_PULL = 16, MODES = 7;
   const strings = FREQS.map((f, i) => {
     const x = X0 + i * GAP;
@@ -704,22 +705,33 @@ function initDavidHarp() {
       later(startRound, 950);
     }
   }
-  // "Jesus Loves Me": every note is on the harp. [string, beats]
-  const SONG = [
-    [3,1],[2,1],[2,1],[1,1],[2,1],[3,1],[3,2],
-    [4,1],[4,1],[5,1],[4,1],[4,1],[3,1],[3,2],
-    [3,1],[2,1],[2,1],[1,1],[2,1],[3,1],[3,2],
-    [4,1],[4,1],[3,1],[0,1],[2,1],[1,1],[0,2]
-  ];
-  function playSong() {
+  // Songs Buddy can play. Strings: C=0 D=1 E=2 F=3 G=4 A=5 B=6 C=7 D=8 E=9. [string, beats]
+  const SONGS = {
+    jesus: { name: "Jesus Loves Me", beat: 400, notes: [
+      [4,1],[2,1],[2,1],[1,1],[2,1],[4,1],[4,2],
+      [5,1],[5,1],[7,1],[5,1],[5,1],[4,1],[4,2],
+      [4,1],[2,1],[2,1],[1,1],[2,1],[4,1],[4,2],
+      [5,1],[5,1],[4,1],[0,1],[2,1],[1,1],[0,2]
+    ] },
+    jingle: { name: "Jingle Bells", beat: 300, notes: [
+      [2,1],[2,1],[2,2], [2,1],[2,1],[2,2], [2,1],[4,1],[0,1.5],[1,0.5],[2,4],
+      [3,1],[3,1],[3,1.5],[3,0.5], [3,1],[2,1],[2,1],[2,0.5],[2,0.5],
+      [2,1],[1,1],[1,1],[2,1], [1,2],[4,2],
+      [2,1],[2,1],[2,2], [2,1],[2,1],[2,2], [2,1],[4,1],[0,1.5],[1,0.5],[2,4],
+      [3,1],[3,1],[3,1.5],[3,0.5], [3,1],[2,1],[2,1],[2,0.5],[2,0.5],
+      [4,1],[4,1],[3,1],[1,1], [0,4]
+    ] }
+  };
+  function playSong(key) {
+    const song = SONGS[key] || SONGS.jesus;
     stopBuddy(); listening = false; buddyBusy = true;
-    say("Buddy is playing \"Jesus Loves Me\" on David's harp. 🎶");
+    say("Buddy is playing \"" + song.name + "\" on David's harp. 🎶");
     let t = 300;
-    SONG.forEach(([i, beats]) => { later(() => buddyPlays(i), t); t += beats * 400; });
+    song.notes.forEach(([i, beats]) => { later(() => buddyPlays(i), t); t += beats * song.beat; });
     later(() => { buddyBusy = false; say("Now you try! Pull a string and let go, or sweep across them all."); }, t + 300);
   }
   playBtn && playBtn.addEventListener("click", newTune);
-  songBtn && songBtn.addEventListener("click", playSong);
+  songBtns.forEach(b => b.addEventListener("click", () => playSong(b.dataset.harpSong)));
   freeBtn && freeBtn.addEventListener("click", () => {
     stopBuddy(); listening = false;
     say("Free play! Pull a string and let go, or sweep across them all.");
