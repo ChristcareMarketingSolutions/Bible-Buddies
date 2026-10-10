@@ -479,77 +479,455 @@ function initDavidSling() {
 
 /* ===================================================================
    DAVID'S HARP
-   Pluck strings to make music (Web Audio), plus a copy-the-tune game.
+   A wooden harp with steel strings. Pull a string and let go, tap it,
+   or sweep across them all. Each string rings like a real one: the
+   pluck starts as a sharp bend, then settles into a smooth, fading
+   blur (the sum of its harmonics). Plus a copy-the-tune game and a song.
    =================================================================== */
 function initDavidHarp() {
-  const wrap = document.querySelector("[data-harp-strings]");
-  if (!wrap) return;
-  const NOTES = [
-    { f: 261.63, c: "#FF8A5B", h: 184 }, { f: 293.66, c: "#FFC93C", h: 172 },
-    { f: 329.63, c: "#63C67A", h: 160 }, { f: 392.00, c: "#4CB4E7", h: 148 },
-    { f: 440.00, c: "#7C5CBF", h: 136 }, { f: 523.25, c: "#F26430", h: 124 },
-    { f: 587.33, c: "#3FA857", h: 112 }
-  ];
+  const canvas = document.querySelector("[data-harp-canvas]");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
   const levelEl = document.querySelector("[data-harp-level]");
   const fbEl    = document.querySelector("[data-harp-feedback]");
   const playBtn = document.querySelector("[data-harp-play]");
+  const songBtn = document.querySelector("[data-harp-song]");
   const freeBtn = document.querySelector("[data-harp-free]");
-  let audio;
-  function ac() { if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); return audio; }
-  function playNote(f) {
-    const a = ac(); const o = a.createOscillator(); const g = a.createGain();
-    o.type = "triangle"; o.frequency.value = f;
-    g.gain.setValueAtTime(0.0001, a.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.3, a.currentTime + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.7);
-    o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + 0.72);
-  }
-  let seq = [], step = 0, listening = false;
-  const strings = NOTES.map((note, i) => {
-    const b = document.createElement("button");
-    b.className = "harp-string"; b.style.background = note.c;
-    b.style.setProperty("--h", note.h + "px");
-    b.setAttribute("aria-label", "Harp string " + (i + 1));
-    b.addEventListener("click", () => pluck(i, true));
-    wrap.appendChild(b); return b;
+  const W = 640, H = 420;
+  const lowMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- the harp's shape ---------- */
+  const soundY = x => 385 - (x - 140) * 215 / 420;                 // top of the sound box (strings end here)
+  const neckY  = x => { const t = (x - 110) / 470; return 50 + 60 * t - 22 * Math.sin(t * Math.PI * 2); };
+
+  // Two octaves of C major pentatonic, low (long, left) to high (short, right)
+  const FREQS = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+  const X0 = 170, GAP = 36, MAX_PULL = 16, MODES = 7;
+  const strings = FREQS.map((f, i) => {
+    const x = X0 + i * GAP;
+    return {
+      f, i, x, top: neckY(x), bot: soundY(x),
+      width: 2.8 - i * 0.16, wound: i < 3,                          // the low strings are wound wire
+      modes: new Float32Array(MODES), age: 9, decay: 2.6 - i * 0.14, last: 0, hint: 0
+    };
   });
-  function pluck(i, user) {
-    playNote(NOTES[i].f);
-    strings[i].classList.add("pluck");
-    setTimeout(() => strings[i].classList.remove("pluck"), 160);
+
+  /* ---------- sound: a plucked steel string (Karplus-Strong) with a soft room echo ---------- */
+  let audio, master, buffers = [];
+  const ringing = [];   // the sound each string is making now
+  function ac() {
+    if (audio) return audio;
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+    master = audio.createGain(); master.gain.value = 0.6;
+    const verb = audio.createConvolver(), wet = audio.createGain();
+    const len = Math.floor(audio.sampleRate * 1.8), ir = audio.createBuffer(2, len, audio.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = ir.getChannelData(ch);
+      for (let n = 0; n < len; n++) d[n] = (Math.random() * 2 - 1) * Math.pow(1 - n / len, 3);
+    }
+    verb.buffer = ir; wet.gain.value = 0.25;
+    master.connect(audio.destination);
+    master.connect(verb).connect(wet).connect(audio.destination);
+    return audio;
+  }
+  function stringSound(i) {
+    const a = audio, sr = a.sampleRate, len = Math.floor(sr * 3);
+    const buf = a.createBuffer(1, len, sr), out = buf.getChannelData(0);
+    const period = Math.max(2, Math.round(sr / FREQS[i])), ring = new Float32Array(period);
+    const soft = 0.5 - i * 0.03;                         // low strings sound warmer, high ones brighter
+    let prev = 0;
+    for (let k = 0; k < period; k++) { prev = soft * prev + (1 - soft) * (Math.random() * 2 - 1); ring[k] = prev; }
+    const loss = 0.4990 - i * 0.00008;
+    let idx = 0;
+    for (let n = 0; n < len; n++) {
+      const next = (idx + 1) % period, v = ring[idx];
+      ring[idx] = loss * (v + ring[next]);
+      out[n] = v * Math.min(1, n / 30);
+      idx = next;
+    }
+    return buf;
+  }
+  function playNote(i, vol) {
+    const a = ac();
+    if (a.state === "suspended") a.resume();
+    if (!buffers[i]) buffers[i] = stringSound(i);
+    const old = ringing[i];
+    if (old) {   // plucking a ringing string stops its old note, just like a real harp
+      try { old.g.gain.setTargetAtTime(0, a.currentTime, 0.02); old.src.stop(a.currentTime + 0.1); } catch (e) {}
+    }
+    const src = a.createBufferSource(), g = a.createGain();
+    src.buffer = buffers[i]; g.gain.value = 0.25 + 0.75 * vol;
+    src.connect(g).connect(master); src.start();
+    ringing[i] = { src, g };
+  }
+
+  /* ---------- the vibration: a plucked string is a sum of harmonics ---------- */
+  function setPluck(s, p, h) {
+    // a string pulled to height h at point p (0..1 along it), then let go
+    p = Math.min(0.9, Math.max(0.1, p));
+    for (let n = 1; n <= MODES; n++) {
+      s.modes[n - 1] = h * 2 * Math.sin(n * Math.PI * p) / (n * n * Math.PI * Math.PI * p * (1 - p));
+    }
+    s.age = 0;
+  }
+  function shapeAt(s, u, phase) {
+    // sideways offset of the string at u (0..1 along it)
+    let d = 0;
+    for (let n = 1; n <= MODES; n++) {
+      const a = s.modes[n - 1] * Math.exp(-s.age * (0.6 + 0.9 * (n - 1)) / s.decay);
+      d += a * Math.sin(n * Math.PI * u) * Math.cos(n * phase);
+    }
+    return d;
+  }
+  const energy = s => Math.abs(s.modes[0]) * Math.exp(-s.age * 0.6 / s.decay);
+
+  /* ---------- playing a string ---------- */
+  function say(t) { if (fbEl) fbEl.textContent = t; }
+  function pluck(i, user, h, p) {
+    const s = strings[i], now = performance.now();
+    if (user && now - s.last < 60) return;
+    s.last = now;
+    h = h || MAX_PULL * 0.8; p = p == null ? 0.35 : p;
+    setPluck(s, p, h);
+    playNote(i, Math.min(1, Math.abs(h) / MAX_PULL));
     if (user && listening) checkStep(i);
   }
-  function rand() { return Math.floor(Math.random() * NOTES.length); }
-  function newTune() { seq = [rand()]; startRound(); }
+
+  /* ---------- touch / mouse: pull a string and let go, tap, or sweep ---------- */
+  let down = false, last = null, grab = null;
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
+  }
+  const along = (s, y) => (y - s.top) / (s.bot - s.top);
+  const onString = (s, y) => y > s.top - 6 && y < s.bot + 6;
+  function nearest(p) {
+    let best = -1, bd = GAP / 2;
+    strings.forEach((s, i) => { const d = Math.abs(p.x - s.x); if (d < bd && onString(s, p.y)) { bd = d; best = i; } });
+    return best;
+  }
+  function release(force) {
+    if (!grab) return;
+    const s = strings[grab.i];
+    let h = last ? last.x - s.x : 0;
+    if (Math.abs(h) < 5) h = (h < 0 ? -1 : 1) * Math.max(Math.abs(h), force || 0);
+    h = Math.max(-MAX_PULL, Math.min(MAX_PULL, h));
+    s.held = null;
+    pluck(grab.i, true, h, grab.p);
+    grab = null;
+  }
+  function crossings(a, b) {
+    const hits = [];
+    strings.forEach((s, i) => {
+      if (a.x === b.x || (a.x - s.x) * (b.x - s.x) > 0) return;
+      const t = (s.x - a.x) / (b.x - a.x), y = a.y + (b.y - a.y) * t;
+      if (onString(s, y)) hits.push({ i, t, y });
+    });
+    return hits.sort((m, n) => m.t - n.t);
+  }
+  canvas.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    down = true; last = pos(e);
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    const i = nearest(last);
+    if (i >= 0) grab = { i, p: along(strings[i], last.y) };    // hold the string
+  });
+  canvas.addEventListener("pointermove", e => {
+    const p = pos(e), prev = last;
+    last = p;
+    if (!prev) return;
+    if (down) {
+      if (grab) {
+        const s = strings[grab.i];
+        if (Math.abs(p.x - s.x) > MAX_PULL) release(MAX_PULL);  // pulled too far: it slips off and rings
+        else { s.held = { p: grab.p, h: p.x - s.x }; return; }
+      }
+      // fast sweep: each string the finger crosses is caught and let go
+      crossings(prev, p).forEach(h => {
+        const dir = Math.sign(p.x - prev.x) || 1;
+        const sp = Math.min(1, Math.abs(p.x - prev.x) / 24);
+        pluck(h.i, true, dir * MAX_PULL * (0.45 + 0.55 * sp), along(strings[h.i], h.y));
+      });
+    } else if (e.pointerType === "mouse" && !listening && !buddyBusy) {
+      // in free play, a mouse can strum just by gliding over the strings
+      crossings(prev, p).forEach(h => pluck(h.i, true, Math.sign(p.x - prev.x) * MAX_PULL * 0.5, along(strings[h.i], h.y)));
+    }
+  });
+  const lift = () => { down = false; release(MAX_PULL * 0.7); };
+  canvas.addEventListener("pointerup", lift);
+  canvas.addEventListener("pointercancel", lift);
+  canvas.addEventListener("pointerleave", () => { if (!down) last = null; });
+
+  // keyboard: 1-9 and 0, or A S D F G H J K L ;
+  canvas.addEventListener("keydown", e => {
+    let i = "1234567890".indexOf(e.key);
+    if (i < 0) i = "asdfghjkl;".indexOf(e.key.toLowerCase());
+    if (i >= 0) { e.preventDefault(); pluck(i, true); }
+  });
+
+  /* ---------- Buddy plays: copy-the-tune game and a song ---------- */
+  let seq = [], step = 0, listening = false, buddyBusy = false, timers = [];
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  function stopBuddy() { timers.forEach(clearTimeout); timers = []; buddyBusy = false; }
+  function buddyPlays(i) { strings[i].hint = 1; pluck(i, false); }
+  const TUNE_STRINGS = 7;   // the copy game uses the first 7 strings, so they are easier to tell apart
+  function rand() {
+    let r; do { r = Math.floor(Math.random() * TUNE_STRINGS); } while (seq.length && r === seq[seq.length - 1]);
+    return r;
+  }
+  function newTune() { stopBuddy(); seq = [rand()]; startRound(); }
   function startRound() {
     if (levelEl) levelEl.textContent = seq.length;
-    if (fbEl) fbEl.textContent = "Listen to Buddy...";
-    listening = false; step = 0;
-    const gap = 480;
-    seq.forEach((idx, k) => setTimeout(() => pluck(idx, false), gap * (k + 1)));
-    setTimeout(() => { listening = true; if (fbEl) fbEl.textContent = "Your turn! Copy the tune."; }, gap * (seq.length + 1));
+    say("Listen to Buddy... watch which strings move!");
+    listening = false; step = 0; buddyBusy = true;
+    const gap = 600;
+    seq.forEach((idx, k) => later(() => buddyPlays(idx), gap * (k + 1)));
+    later(() => { buddyBusy = false; listening = true; say("Your turn! Play the same strings."); }, gap * (seq.length + 1));
   }
   function checkStep(i) {
     if (i === seq[step]) {
       step++;
       if (step === seq.length) {
+        listening = false;
         if (typeof bbAddStars === "function") bbAddStars(2, "harp-len-" + seq.length);
         if (seq.length >= 5) {
-          if (fbEl) fbEl.textContent = "Beautiful! David played his harp to bring peace to King Saul. (1 Samuel 16:23)";
+          say("Beautiful! David played his harp to bring peace to King Saul. (1 Samuel 16:23)");
           if (typeof bbCelebrate === "function") bbCelebrate();
-          listening = false;
         } else {
-          if (fbEl) fbEl.textContent = "Yes! Here comes a longer tune...";
-          seq.push(rand()); listening = false; setTimeout(startRound, 950);
+          say("Yes! Here comes a longer tune...");
+          seq.push(rand()); later(startRound, 950);
         }
       }
     } else {
-      if (fbEl) fbEl.textContent = "Almost! Listen again...";
-      listening = false; setTimeout(startRound, 950);
+      listening = false;
+      say("Almost! Listen again...");
+      later(startRound, 950);
     }
   }
+  // "Jesus Loves Me": every note is on the harp. [string, beats]
+  const SONG = [
+    [3,1],[2,1],[2,1],[1,1],[2,1],[3,1],[3,2],
+    [4,1],[4,1],[5,1],[4,1],[4,1],[3,1],[3,2],
+    [3,1],[2,1],[2,1],[1,1],[2,1],[3,1],[3,2],
+    [4,1],[4,1],[3,1],[0,1],[2,1],[1,1],[0,2]
+  ];
+  function playSong() {
+    stopBuddy(); listening = false; buddyBusy = true;
+    say("Buddy is playing \"Jesus Loves Me\" on David's harp. 🎶");
+    let t = 300;
+    SONG.forEach(([i, beats]) => { later(() => buddyPlays(i), t); t += beats * 400; });
+    later(() => { buddyBusy = false; say("Now you try! Pull a string and let go, or sweep across them all."); }, t + 300);
+  }
   playBtn && playBtn.addEventListener("click", newTune);
-  freeBtn && freeBtn.addEventListener("click", () => { listening = false; if (fbEl) fbEl.textContent = "Free play! Pluck any string you like."; });
+  songBtn && songBtn.addEventListener("click", playSong);
+  freeBtn && freeBtn.addEventListener("click", () => {
+    stopBuddy(); listening = false;
+    say("Free play! Pull a string and let go, or sweep across them all.");
+  });
+
+  /* ---------- drawing: wood grain, lighting and steel ---------- */
+  function fitCanvas() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // a tile of wood grain, made once: fine wavy lines and darker streaks
+  function grainTile(base, dark, light, seed) {
+    const c = document.createElement("canvas"); c.width = 256; c.height = 256;
+    const g = c.getContext("2d");
+    g.fillStyle = base; g.fillRect(0, 0, 256, 256);
+    let r = seed;
+    const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+    for (let k = 0; k < 90; k++) {
+      const y0 = rnd() * 256, amp = 1 + rnd() * 3, freq = 0.01 + rnd() * 0.03, ph = rnd() * 6;
+      g.strokeStyle = rnd() < 0.7 ? dark : light;
+      g.globalAlpha = 0.08 + rnd() * 0.22; g.lineWidth = 0.5 + rnd() * 1.6;
+      g.beginPath();
+      for (let x = -4; x <= 260; x += 4) g.lineTo(x, y0 + Math.sin(x * freq + ph) * amp + Math.sin(x * 0.11 + ph) * 0.6);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+    return c;
+  }
+  function pattern(tile, angle) {
+    const p = ctx.createPattern(tile, "repeat");
+    if (p && p.setTransform && window.DOMMatrix) p.setTransform(new DOMMatrix().rotate(angle));
+    return p;
+  }
+  const walnut = grainTile("#5b3a22", "#2a170b", "#8a5d38", 7);
+  const spruce = grainTile("#d9b27a", "#a37a44", "#f0d3a0", 3);
+  let woodNeck, woodPillar, woodBox, woodBoard;
+  function makePatterns() {
+    woodNeck = pattern(walnut, 8); woodPillar = pattern(walnut, 92);
+    woodBox = pattern(walnut, -27); woodBoard = pattern(spruce, -27);
+  }
+
+  // fill a path with wood, then light it: bright on one edge, shadow on the other
+  function woodFill(path, pat, x0, y0, x1, y1) {
+    ctx.save();
+    ctx.fillStyle = pat; ctx.fill(path);
+    ctx.clip(path);
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, "rgba(255,230,190,.28)"); g.addColorStop(0.35, "rgba(255,230,190,.04)");
+    g.addColorStop(0.7, "rgba(0,0,0,.12)"); g.addColorStop(1, "rgba(0,0,0,.5)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    // a fine dark edge and a soft varnish shine
+    ctx.strokeStyle = "rgba(20,10,4,.55)"; ctx.lineWidth = 1; ctx.stroke(path);
+  }
+
+  function drawRoom() {
+    // a dim room with a warm spotlight on the harp
+    ctx.fillStyle = "#0e0b09"; ctx.fillRect(0, 0, W, H);
+    const spot = ctx.createRadialGradient(330, 190, 30, 330, 220, 420);
+    spot.addColorStop(0, "#3a2c20"); spot.addColorStop(0.55, "#1c1510"); spot.addColorStop(1, "#0a0806");
+    ctx.fillStyle = spot; ctx.fillRect(0, 0, W, H);
+    // floor
+    const floor = ctx.createLinearGradient(0, 380, 0, H);
+    floor.addColorStop(0, "rgba(60,42,28,0)"); floor.addColorStop(1, "rgba(60,42,28,.55)");
+    ctx.fillStyle = floor; ctx.fillRect(0, 370, W, 50);
+    // soft shadow under the harp
+    const sh = ctx.createRadialGradient(330, 410, 10, 330, 410, 260);
+    sh.addColorStop(0, "rgba(0,0,0,.6)"); sh.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.save(); ctx.scale(1, 0.12); ctx.fillStyle = sh; ctx.fillRect(40, 380 / 0.12, 600, 60 / 0.12); ctx.restore();
+  }
+
+  function drawSoundBox() {
+    // the body of the sound box
+    const body = new Path2D();
+    body.moveTo(126, 392); body.lineTo(586, 148); body.quadraticCurveTo(624, 146, 620, 184);
+    body.lineTo(256, 412); body.quadraticCurveTo(150, 422, 126, 392); body.closePath();
+    woodFill(body, woodBox, 300, 260, 360, 380);
+    // the pale spruce soundboard where the strings go in
+    const board = new Path2D();
+    board.moveTo(132, 384); board.lineTo(584, 146); board.lineTo(592, 158); board.lineTo(146, 396); board.closePath();
+    woodFill(board, woodBoard, 350, 255, 356, 268);
+    // centre strip and the little holes the strings pass through
+    ctx.strokeStyle = "rgba(70,40,18,.7)"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(140, 386); ctx.lineTo(586, 152); ctx.stroke();
+    strings.forEach(s => {
+      ctx.fillStyle = "#1a0f07"; ctx.beginPath(); ctx.arc(s.x, s.bot + 1, 2.4, 0, Math.PI * 2); ctx.fill();
+    });
+    // sound hole
+    ctx.fillStyle = "#120a04";
+    ctx.beginPath(); ctx.ellipse(370, 318, 13, 6, -0.48, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawFrame() {
+    // pillar: a turned wooden column
+    const pillar = new Path2D();
+    pillar.moveTo(98, 56); pillar.quadraticCurveTo(88, 220, 110, 396); pillar.lineTo(138, 396);
+    pillar.quadraticCurveTo(118, 220, 126, 56); pillar.closePath();
+    woodFill(pillar, woodPillar, 92, 0, 134, 0);
+    // turned rings near the top and bottom
+    [[95, 82], [99, 352], [104, 368]].forEach(([x, y]) => {
+      const ring = new Path2D(); ring.ellipse(x + 14, y, 17, 4.5, 0, 0, Math.PI * 2);
+      woodFill(ring, woodPillar, 0, y - 4, 0, y + 5);
+    });
+    // base
+    const base = new Path2D();
+    base.moveTo(92, 396); base.lineTo(150, 392); base.lineTo(158, 410); base.lineTo(86, 410); base.closePath();
+    woodFill(base, woodPillar, 0, 392, 0, 410);
+
+    // neck: the curved top piece the strings hang from
+    const neck = new Path2D();
+    for (let x = 96; x <= 584; x += 4) neck.lineTo(x, neckY(x) - 30);
+    // the shoulder, where the neck joins the top of the sound box
+    neck.quadraticCurveTo(614, neckY(584) - 30, 615, neckY(584) - 4);
+    neck.lineTo(614, 156); neck.lineTo(588, 156);
+    neck.quadraticCurveTo(586, 128, 584, neckY(584) + 2);
+    for (let x = 584; x >= 96; x -= 4) neck.lineTo(x, neckY(x) + 2);
+    neck.closePath();
+    woodFill(neck, woodNeck, 0, 20, 0, 140);
+    // a carved scroll at the crown
+    const crown = new Path2D(); crown.arc(111, 36, 16, 0, Math.PI * 2);
+    woodFill(crown, woodNeck, 98, 22, 124, 52);
+    ctx.strokeStyle = "rgba(20,10,4,.6)"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(111, 36, 9, 0.4, Math.PI * 1.7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(111, 36, 4, 0, Math.PI * 2); ctx.stroke();
+
+    // steel tuning pins and brass bridge pins
+    strings.forEach(s => {
+      const py = s.top - 14;
+      const pin = ctx.createRadialGradient(s.x - 1, py - 1, 0.5, s.x, py, 4);
+      pin.addColorStop(0, "#ffffff"); pin.addColorStop(0.4, "#b9c0c8"); pin.addColorStop(1, "#4b5157");
+      ctx.fillStyle = pin; ctx.beginPath(); ctx.arc(s.x, py, 3.6, 0, Math.PI * 2); ctx.fill();
+      const br = ctx.createRadialGradient(s.x - 0.7, s.top - 1.7, 0.3, s.x, s.top - 1, 2.6);
+      br.addColorStop(0, "#fff3c4"); br.addColorStop(0.5, "#c9a24a"); br.addColorStop(1, "#6e5418");
+      ctx.fillStyle = br; ctx.beginPath(); ctx.arc(s.x, s.top - 1, 2.4, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+
+  const SEG = 30;
+  function stringPath(s, offsetAt, dx) {
+    ctx.beginPath();
+    for (let k = 0; k <= SEG; k++) {
+      const u = k / SEG, y = s.top + (s.bot - s.top) * u;
+      const x = s.x + (dx || 0) + offsetAt(u);
+      k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+  }
+  // a steel string: dark edge, bright highlight down one side, like a polished wire
+  function steel(s, offsetAt, alpha) {
+    ctx.globalAlpha = alpha;
+    stringPath(s, offsetAt);
+    ctx.strokeStyle = s.wound ? "#6d6a64" : "#7d858d"; ctx.lineWidth = s.width; ctx.stroke();
+    stringPath(s, offsetAt, -s.width * 0.18);
+    ctx.strokeStyle = s.wound ? "#d8d2c6" : "#eef2f5"; ctx.lineWidth = Math.max(0.6, s.width * 0.38); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  function drawStrings(t) {
+    ctx.lineCap = "round";
+    strings.forEach(s => {
+      // a faint shadow of each string on the neck and sound box
+      ctx.strokeStyle = "rgba(0,0,0,.25)"; ctx.lineWidth = s.width;
+      ctx.beginPath(); ctx.moveTo(s.x + 3, s.top + 2); ctx.lineTo(s.x + 3, s.top + 8); ctx.stroke();
+
+      if (s.held) {
+        // being pulled: a sharp bend at the finger
+        const { p, h } = s.held;
+        steel(s, u => u < p ? h * u / p : h * (1 - u) / (1 - p), 1);
+      } else if (energy(s) > 0.05) {
+        // a real string moves too fast to see clearly: draw a soft blur of where it swings
+        const phase = t * (14 + s.i * 1.6) * Math.PI * 2;
+        const blur = lowMotion ? 1 : 7;
+        for (let k = 0; k < blur; k++) {
+          const ph = phase + k * Math.PI * 2 / blur;
+          steel(s, u => shapeAt(s, u, ph), 0.6 / blur + 0.06);
+        }
+        steel(s, u => shapeAt(s, u, phase), 0.85);   // the string itself, caught at this instant
+      } else {
+        steel(s, () => 0, 1);
+      }
+      // a soft glint above the string Buddy just played
+      if (s.hint > 0.05) {
+        const g = ctx.createRadialGradient(s.x, s.top - 14, 0, s.x, s.top - 14, 16);
+        g.addColorStop(0, `rgba(255,240,200,${0.8 * s.hint})`); g.addColorStop(1, "rgba(255,240,200,0)");
+        ctx.fillStyle = g; ctx.fillRect(s.x - 16, s.top - 30, 32, 32);
+      }
+    });
+  }
+
+  let prevT = 0, visible = true, raf = 0;
+  function frame(ms) {
+    const t = ms / 1000, dt = Math.min(0.05, prevT ? t - prevT : 0.016);
+    prevT = t;
+    strings.forEach(s => { s.age += dt; s.hint *= Math.pow(0.12, dt); });
+    drawRoom(); drawSoundBox(); drawStrings(t); drawFrame();
+    raf = visible ? requestAnimationFrame(frame) : 0;
+  }
+  // pause the animation while the harp is scrolled off screen
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(es => {
+      visible = es[0].isIntersecting;
+      if (visible && !raf) { prevT = 0; raf = requestAnimationFrame(frame); }
+    }).observe(canvas);
+  }
+  fitCanvas(); makePatterns();
+  addEventListener("resize", fitCanvas);
+  raf = requestAnimationFrame(frame);
+  canvas.__harp = { get state() { return { listening, buddyBusy, seq: seq.slice(), step }; }, pluck: i => pluck(i, true), strings };
 }
 
 document.addEventListener("DOMContentLoaded", () => {
