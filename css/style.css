@@ -658,7 +658,6 @@ img, video, canvas { max-width: 100%; }
   .q-clue { font-size: 1.08rem; padding: 1rem; }
   .q-options { grid-template-columns: 1fr; }
   .scramble-word { font-size: clamp(1.6rem, 9vw, 2.6rem); letter-spacing: 0.2rem; }
-  .harp { gap: 0.3rem; padding: 0.8rem 0.6rem 1rem; }
   .chat-window { max-height: 300px; }
   .chat-msg { max-width: 92%; }
   .chat-input-row { flex-wrap: wrap; }
@@ -724,21 +723,12 @@ img, video, canvas { max-width: 100%; }
 .sling-canvas:focus-visible { outline: 4px solid var(--sky-deep); outline-offset: 3px; }
 
 /* David's Harp game */
-.harp {
-  display: flex; justify-content: center; align-items: flex-end; gap: .5rem;
-  max-width: 520px; margin: 0 auto 1rem; padding: 1rem 1rem 1.4rem;
-  background: var(--parchment); border: var(--border); border-radius: var(--radius);
+.harp-canvas {
+  display: block; width: 100%; max-width: 640px; height: auto; margin: 0 auto;
+  background: #2E2854; border: var(--border); border-radius: var(--radius);
+  touch-action: none; cursor: pointer;
 }
-.harp-string {
-  flex: 1 1 0; border: none; border-radius: var(--radius-pill); cursor: pointer;
-  height: var(--h, 140px); box-shadow: 0 4px 0 rgba(0,0,0,.15);
-  transition: transform .08s ease, filter .08s ease;
-}
-.harp-string:active, .harp-string.pluck {
-  transform: translateY(3px) scaleX(1.18); filter: brightness(1.2);
-  box-shadow: 0 1px 0 rgba(0,0,0,.15);
-}
-.harp-string:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.harp-canvas:focus-visible { outline: 4px solid var(--sun-deep); outline-offset: 3px; }
 
 /* Ask Buddy chatbot */
 .chat-window {
