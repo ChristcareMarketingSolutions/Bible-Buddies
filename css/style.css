@@ -725,7 +725,7 @@ img, video, canvas { max-width: 100%; }
 /* David's Harp game */
 .harp-canvas {
   display: block; width: 100%; max-width: 640px; height: auto; margin: 0 auto;
-  background: #2E2854; border: var(--border); border-radius: var(--radius);
+  background: #120d1d; border: var(--border); border-radius: var(--radius);
   touch-action: none; cursor: pointer;
 }
 .harp-canvas:focus-visible { outline: 4px solid var(--sun-deep); outline-offset: 3px; }

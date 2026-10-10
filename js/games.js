@@ -479,11 +479,11 @@ function initDavidSling() {
 
 /* ===================================================================
    DAVID'S HARP
-   A glowing harp drawn on a canvas. Tap a string, or sweep a finger
-   across the strings to strum them (like a glissando). The strings are
-   tuned to a pentatonic scale, so every sweep sounds sweet. Each note
-   blows a little of King Saul's storm cloud away (1 Samuel 16:23).
-   Plus: Buddy plays "Jesus Loves Me", and a copy-the-tune game.
+   A wooden harp with real-looking strings. Pull a string and let go,
+   tap it, or sweep across them all. Each string rings like a real one:
+   the pluck starts as a sharp bend, then settles into a smooth, fading
+   blur (the sum of its harmonics). Every note also blooms its own colour
+   into the air around the harp. Plus a copy-the-tune game and a song.
    =================================================================== */
 function initDavidHarp() {
   const canvas = document.querySelector("[data-harp-canvas]");
@@ -495,169 +495,237 @@ function initDavidHarp() {
   const playBtn = document.querySelector("[data-harp-play]");
   const songBtn = document.querySelector("[data-harp-song]");
   const freeBtn = document.querySelector("[data-harp-free]");
-  const W = 640, H = 400;
-  const calmMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const W = 640, H = 420;
+  const lowMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // C major pentatonic, low (long string, left) to high (short string, right)
+  /* ---------- the harp's shape ---------- */
+  const soundY = x => 385 - (x - 140) * 215 / 420;                 // top of the sound box (strings end here)
+  const neckY  = x => { const t = (x - 110) / 470; return 50 + 60 * t - 22 * Math.sin(t * Math.PI * 2); };
+
+  // Two octaves of C major pentatonic, low (long, left) to high (short, right).
+  // Each note has its own colour for the colour bloom.
   const NOTES = [
-    { f: 261.63, c: "#FF8A5B", n: "C" }, { f: 293.66, c: "#FFC93C", n: "D" },
-    { f: 329.63, c: "#63C67A", n: "E" }, { f: 392.00, c: "#4CB4E7", n: "G" },
-    { f: 440.00, c: "#7C5CBF", n: "A" }, { f: 523.25, c: "#F26430", n: "C" },
-    { f: 587.33, c: "#F0A500", n: "D" }, { f: 659.25, c: "#3FA857", n: "E" }
+    { f: 261.63, c: [255, 92, 92] },  { f: 293.66, c: [255, 160, 64] }, { f: 329.63, c: [255, 214, 70] },
+    { f: 392.00, c: [72, 214, 150] }, { f: 440.00, c: [80, 160, 255] }, { f: 523.25, c: [255, 120, 150] },
+    { f: 587.33, c: [255, 186, 92] }, { f: 659.25, c: [240, 236, 110] }, { f: 783.99, c: [110, 232, 210] },
+    { f: 880.00, c: [170, 140, 255] }
   ];
-  const X0 = 196, GAP = 36, BOTTOM = 318;
+  const X0 = 170, GAP = 36, MAX_PULL = 16, MODES = 7;
   const strings = NOTES.map((note, i) => {
     const x = X0 + i * GAP;
-    return { ...note, x, top: 92 + i * 13, amp: 0, phase: 0, glow: 0, hint: 0, last: 0 };
+    return {
+      ...note, i, x, top: neckY(x), bot: soundY(x),
+      // like a real harp: the C strings are red, the lowest strings are wound with bronze wire
+      tint: i % 5 === 0 ? [196, 52, 44] : i < 3 ? [176, 132, 82] : [238, 222, 190],
+      width: 3.4 - i * 0.18,
+      modes: new Float32Array(MODES), age: 9, decay: 2.6 - i * 0.14, glow: 0, last: 0
+    };
   });
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
-  /* ---------- sound: a plucked string (Karplus-Strong) with a soft echo ---------- */
+  /* ---------- sound: a plucked string (Karplus-Strong) with a soft room echo ---------- */
   let audio, master, buffers = [];
-  const voices = [];
+  const ringing = [];   // the sound each string is making now
   function ac() {
     if (audio) return audio;
     audio = new (window.AudioContext || window.webkitAudioContext)();
-    master = audio.createGain(); master.gain.value = 0.55;
+    master = audio.createGain(); master.gain.value = 0.6;
     const verb = audio.createConvolver(), wet = audio.createGain();
-    const len = Math.floor(audio.sampleRate * 1.6), ir = audio.createBuffer(2, len, audio.sampleRate);
+    const len = Math.floor(audio.sampleRate * 1.8), ir = audio.createBuffer(2, len, audio.sampleRate);
     for (let ch = 0; ch < 2; ch++) {
       const d = ir.getChannelData(ch);
       for (let n = 0; n < len; n++) d[n] = (Math.random() * 2 - 1) * Math.pow(1 - n / len, 3);
     }
-    verb.buffer = ir; wet.gain.value = 0.22;
+    verb.buffer = ir; wet.gain.value = 0.25;
     master.connect(audio.destination);
     master.connect(verb).connect(wet).connect(audio.destination);
     return audio;
   }
-  function stringSound(f) {
-    const a = audio, sr = a.sampleRate, len = Math.floor(sr * 2.4);
+  function stringSound(i) {
+    const a = audio, sr = a.sampleRate, len = Math.floor(sr * 3);
     const buf = a.createBuffer(1, len, sr), out = buf.getChannelData(0);
-    const period = Math.max(2, Math.round(sr / f)), ring = new Float32Array(period);
+    const period = Math.max(2, Math.round(sr / NOTES[i].f)), ring = new Float32Array(period);
+    const soft = 0.6 - i * 0.03;                         // low strings sound warmer, high ones brighter
     let prev = 0;
-    for (let k = 0; k < period; k++) { prev = 0.55 * prev + 0.45 * (Math.random() * 2 - 1); ring[k] = prev; }
+    for (let k = 0; k < period; k++) { prev = soft * prev + (1 - soft) * (Math.random() * 2 - 1); ring[k] = prev; }
+    const loss = 0.4988 - i * 0.00008;
     let idx = 0;
     for (let n = 0; n < len; n++) {
-      const next = (idx + 1) % period;
-      const v = ring[idx];
-      ring[idx] = 0.4985 * (v + ring[next]);    // average + tiny loss = a ringing string
-      out[n] = v * Math.min(1, n / 40);
+      const next = (idx + 1) % period, v = ring[idx];
+      ring[idx] = loss * (v + ring[next]);
+      out[n] = v * Math.min(1, n / 30);
       idx = next;
     }
     return buf;
   }
-  function playNote(i, vol = 1) {
+  function playNote(i, vol) {
     const a = ac();
     if (a.state === "suspended") a.resume();
-    if (!buffers[i]) buffers[i] = stringSound(NOTES[i].f);
+    if (!buffers[i]) buffers[i] = stringSound(i);
+    const old = ringing[i];
+    if (old) {   // plucking a ringing string stops its old note, just like a real harp
+      try { old.g.gain.setTargetAtTime(0, a.currentTime, 0.02); old.src.stop(a.currentTime + 0.1); } catch (e) {}
+    }
     const src = a.createBufferSource(), g = a.createGain();
-    src.buffer = buffers[i]; g.gain.value = 0.9 * vol;
+    src.buffer = buffers[i]; g.gain.value = 0.25 + 0.75 * vol;
     src.connect(g).connect(master); src.start();
-    voices.push(src);
-    src.onended = () => { const k = voices.indexOf(src); if (k >= 0) voices.splice(k, 1); };
-    if (voices.length > 14) { try { voices.shift().stop(); } catch (e) {} }   // fast sweeps: drop the oldest voice
+    ringing[i] = { src, g };
   }
 
-  /* ---------- the story: Saul's storm cloud blows away as David plays ---------- */
+  /* ---------- the vibration: a plucked string is a sum of harmonics ---------- */
+  function setPluck(s, p, h) {
+    // a string pulled to height h at point p (0..1 along it), then let go
+    p = Math.min(0.9, Math.max(0.1, p));
+    for (let n = 1; n <= MODES; n++) {
+      s.modes[n - 1] = h * 2 * Math.sin(n * Math.PI * p) / (n * n * Math.PI * Math.PI * p * (1 - p));
+    }
+    s.age = 0;
+  }
+  function shapeAt(s, u, phase) {
+    // sideways offset of the string at u (0..1 along it)
+    let d = 0;
+    for (let n = 1; n <= MODES; n++) {
+      const a = s.modes[n - 1] * Math.exp(-s.age * (0.6 + 0.9 * (n - 1)) / s.decay);
+      d += a * Math.sin(n * Math.PI * u) * Math.cos(n * phase);
+    }
+    return d;
+  }
+  const energy = s => Math.abs(s.modes[0]) * Math.exp(-s.age * 0.6 / s.decay);
+
+  /* ---------- colour bloom (drawn small, then spread softly over the whole harp) ---------- */
+  const SC = 4, ink = document.createElement("canvas");
+  ink.width = W / SC; ink.height = H / SC;
+  const ix = ink.getContext("2d");
+  const blooms = [], ripples = [];
+  function bloom(x, y, c, strength, vx) {
+    blooms.push({ x, y, c, r: 10, a: 0.9 * strength, vx: vx * 40, vy: -18 });
+    if (!lowMotion) ripples.push({ x, y, c, r: 6, a: 0.7 * strength });
+  }
+
+  /* ---------- playing a string ---------- */
   let calm = 0, calmDone = false;
+  function say(t) { if (fbEl) fbEl.textContent = t; }
   function addCalm(n) {
     if (calmDone) return;
     calm = Math.min(100, calm + n);
     if (calmEl) calmEl.textContent = Math.round(calm) + "%";
     if (calm >= 100) {
       calmDone = true;
-      say("King Saul feels peaceful! David played his harp, and Saul felt better. (1 Samuel 16:23)");
+      say("King Saul feels peaceful! When David played the harp, Saul felt better. (1 Samuel 16:23)");
       if (typeof bbAddStars === "function") bbAddStars(2, "harp-calm");
       if (typeof bbCelebrate === "function") bbCelebrate();
-      [0, 2, 4, 5, 7].forEach((s, k) => setTimeout(() => pluck(s, false, 1), 120 * k));
     }
   }
-  function say(t) { if (fbEl) fbEl.textContent = t; }
-
-  /* ---------- light and music notes ---------- */
-  const sparks = [], trail = [];
-  function pluck(i, user, dir) {
+  function pluck(i, user, h, p) {
     const s = strings[i], now = performance.now();
-    if (user && now - s.last < 70) return;             // one pluck per string per sweep
+    if (user && now - s.last < 60) return;
     s.last = now;
-    playNote(i, user ? 1 : 0.85);
-    s.amp = 9; s.phase = 0; s.glow = 1; s.dir = dir || 1;
-    const count = calmMotion ? 1 : 3;
-    for (let k = 0; k < count; k++) {
-      sparks.push({
-        x: s.x + (Math.random() - 0.5) * 18, y: s.top + Math.random() * (BOTTOM - s.top) * 0.6,
-        vx: (Math.random() - 0.5) * 30, vy: -40 - Math.random() * 40, life: 1, c: s.c,
-        ch: k === 0 ? "♪♫♬"[Math.floor(Math.random() * 3)] : "✦", wob: Math.random() * 6
-      });
-    }
-    if (user) { addCalm(1.6); if (listening) checkStep(i); }
+    h = h || MAX_PULL * 0.8; p = p == null ? 0.35 : p;
+    setPluck(s, p, h);
+    s.glow = 1;
+    const vol = Math.min(1, Math.abs(h) / MAX_PULL);
+    playNote(i, vol);
+    bloom(s.x, s.top + (s.bot - s.top) * p, s.c, 0.5 + 0.5 * vol, Math.sign(h));
+    if (user) { addCalm(1.4); if (listening) checkStep(i); }
   }
 
-  /* ---------- touch / mouse: tap or sweep across strings ---------- */
-  let down = false, last = null;
+  /* ---------- touch / mouse: pull a string and let go, tap, or sweep ---------- */
+  let down = false, last = null, grab = null;
   function pos(e) {
     const r = canvas.getBoundingClientRect();
     return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
   }
-  const onString = (s, y) => y > s.top - 14 && y < BOTTOM + 14;
+  const along = (s, y) => (y - s.top) / (s.bot - s.top);
+  const onString = (s, y) => y > s.top - 6 && y < s.bot + 6;
   function nearest(p) {
     let best = -1, bd = GAP / 2;
     strings.forEach((s, i) => { const d = Math.abs(p.x - s.x); if (d < bd && onString(s, p.y)) { bd = d; best = i; } });
     return best;
   }
-  function sweep(a, b) {
+  function release(force) {
+    if (!grab) return;
+    const s = strings[grab.i];
+    let h = last ? last.x - s.x : 0;
+    if (Math.abs(h) < 5) h = (h < 0 ? -1 : 1) * Math.max(Math.abs(h), force || 0);
+    h = Math.max(-MAX_PULL, Math.min(MAX_PULL, h));
+    s.held = null;
+    pluck(grab.i, true, h, grab.p);
+    grab = null;
+  }
+  function crossings(a, b) {
     const hits = [];
     strings.forEach((s, i) => {
-      if ((a.x - s.x) * (b.x - s.x) >= 0 || a.x === b.x) return;   // did not cross this string
+      if (a.x === b.x || (a.x - s.x) * (b.x - s.x) > 0) return;
       const t = (s.x - a.x) / (b.x - a.x), y = a.y + (b.y - a.y) * t;
-      if (onString(s, y)) hits.push({ i, t });
+      if (onString(s, y)) hits.push({ i, t, y });
     });
-    hits.sort((m, n) => m.t - n.t).forEach(h => pluck(h.i, true, Math.sign(b.x - a.x)));
+    return hits.sort((m, n) => m.t - n.t);
   }
   canvas.addEventListener("pointerdown", e => {
     e.preventDefault();
     down = true; last = pos(e);
     try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
     const i = nearest(last);
-    if (i >= 0) pluck(i, true, 1);
+    if (i >= 0) grab = { i, p: along(strings[i], last.y) };    // hold the string
   });
   canvas.addEventListener("pointermove", e => {
-    const p = pos(e);
-    trail.push({ x: p.x, y: p.y, life: 1 });
-    if (trail.length > 40) trail.shift();
-    // drag to strum; a mouse may also strum just by gliding over the strings in free play
-    if (last && (down || (e.pointerType === "mouse" && !listening && !buddyBusy))) sweep(last, p);
+    const p = pos(e), prev = last;
     last = p;
+    if (!prev) return;
+    // a soft trail of colour follows the finger over the strings
+    const k = nearest(p);
+    if (k >= 0 && !lowMotion && (down || e.pointerType === "mouse")) {
+      const sp = Math.min(1, Math.hypot(p.x - prev.x, p.y - prev.y) / 30);
+      if (sp > 0.1) blooms.push({ x: p.x, y: p.y, c: strings[k].c, r: 3, a: 0.35 * sp, vx: (p.x - prev.x) * 2, vy: 0 });
+    }
+    if (down) {
+      if (grab) {
+        const s = strings[grab.i];
+        if (Math.abs(p.x - s.x) > MAX_PULL) release(MAX_PULL);  // pulled too far: it slips off and rings
+        else { s.held = { p: grab.p, h: p.x - s.x }; return; }
+      }
+      // fast sweep: each string the finger crosses is caught and let go
+      crossings(prev, p).forEach(h => {
+        if (strings[h.i] === (grab && strings[grab.i])) return;
+        const dir = Math.sign(p.x - prev.x) || 1;
+        const sp = Math.min(1, Math.abs(p.x - prev.x) / 24);
+        pluck(h.i, true, dir * MAX_PULL * (0.45 + 0.55 * sp), along(strings[h.i], h.y));
+      });
+    } else if (e.pointerType === "mouse" && !listening && !buddyBusy) {
+      // in free play, a mouse can strum just by gliding over the strings
+      crossings(prev, p).forEach(h => pluck(h.i, true, Math.sign(p.x - prev.x) * MAX_PULL * 0.5, along(strings[h.i], h.y)));
+    }
   });
-  const lift = () => { down = false; };
+  const lift = () => { down = false; release(MAX_PULL * 0.7); };
   canvas.addEventListener("pointerup", lift);
   canvas.addEventListener("pointercancel", lift);
   canvas.addEventListener("pointerleave", () => { if (!down) last = null; });
 
-  // keyboard: 1-8 or A S D F G H J K
-  const KEYS = "asdfghjk";
+  // keyboard: 1-9 and 0, or A S D F G H J K L ;
   canvas.addEventListener("keydown", e => {
-    let i = "12345678".indexOf(e.key);
-    if (i < 0) i = KEYS.indexOf(e.key.toLowerCase());
-    if (i >= 0) { e.preventDefault(); pluck(i, true, 1); }
+    let i = "1234567890".indexOf(e.key);
+    if (i < 0) i = "asdfghjkl;".indexOf(e.key.toLowerCase());
+    if (i >= 0) { e.preventDefault(); pluck(i, true); }
   });
 
   /* ---------- Buddy plays: copy-the-tune game and a song ---------- */
   let seq = [], step = 0, listening = false, buddyBusy = false, timers = [];
-  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
   function stopBuddy() { timers.forEach(clearTimeout); timers = []; buddyBusy = false; }
-  function buddyPlays(i) { strings[i].hint = 1; pluck(i, false, 1); }
+  function buddyPlays(i) { strings[i].hint = 1; pluck(i, false); }
+  const TUNE_STRINGS = 7;   // the copy game uses the first 7 strings, so they are easier to tell apart
   function rand() {
-    let r; do { r = Math.floor(Math.random() * NOTES.length); } while (seq.length && r === seq[seq.length - 1]);
+    let r; do { r = Math.floor(Math.random() * TUNE_STRINGS); } while (seq.length && r === seq[seq.length - 1]);
     return r;
   }
-  function newTune() { stopBuddy(); seq = []; seq.push(rand()); startRound(); }
+  function newTune() { stopBuddy(); seq = [rand()]; startRound(); }
   function startRound() {
     if (levelEl) levelEl.textContent = seq.length;
-    say("Listen to Buddy... watch which strings light up!");
+    say("Listen to Buddy... watch which strings glow!");
     listening = false; step = 0; buddyBusy = true;
-    const gap = 560;
+    const gap = 600;
     seq.forEach((idx, k) => later(() => buddyPlays(idx), gap * (k + 1)));
-    later(() => { buddyBusy = false; listening = true; say("Your turn! Tap the same strings."); }, gap * (seq.length + 1));
+    later(() => { buddyBusy = false; listening = true; say("Your turn! Play the same strings."); }, gap * (seq.length + 1));
   }
   function checkStep(i) {
     if (i === seq[step]) {
@@ -679,7 +747,7 @@ function initDavidHarp() {
       later(startRound, 950);
     }
   }
-  // "Jesus Loves Me" — every note is on David's harp: [string, beats]
+  // "Jesus Loves Me": every note is on the harp. [string, beats]
   const SONG = [
     [3,1],[2,1],[2,1],[1,1],[2,1],[3,1],[3,2],
     [4,1],[4,1],[5,1],[4,1],[4,1],[3,1],[3,2],
@@ -690,14 +758,14 @@ function initDavidHarp() {
     stopBuddy(); listening = false; buddyBusy = true;
     say("Buddy is playing \"Jesus Loves Me\" on David's harp. 🎶");
     let t = 300;
-    SONG.forEach(([i, beats]) => { later(() => buddyPlays(i), t); t += beats * 380; });
-    later(() => { buddyBusy = false; say("Now you try! Sweep your finger across the strings."); }, t + 300);
+    SONG.forEach(([i, beats]) => { later(() => buddyPlays(i), t); t += beats * 400; });
+    later(() => { buddyBusy = false; say("Now you try! Pull a string and let go, or sweep across them all."); }, t + 300);
   }
   playBtn && playBtn.addEventListener("click", newTune);
   songBtn && songBtn.addEventListener("click", playSong);
   freeBtn && freeBtn.addEventListener("click", () => {
     stopBuddy(); listening = false;
-    say("Free play! Tap a string, or sweep across them all.");
+    say("Free play! Pull a string and let go, or sweep across them all.");
   });
 
   /* ---------- drawing ---------- */
@@ -706,168 +774,163 @@ function initDavidHarp() {
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-  const mix = (a, b, t) => a.map((v, k) => Math.round(v + (b[k] - v) * t));
-  const rgb = c => `rgb(${c[0]},${c[1]},${c[2]})`;
-  const STARS = Array.from({ length: 34 }, () => ({ x: Math.random() * W, y: Math.random() * 190, r: Math.random() * 1.6 + 0.4, p: Math.random() * 6 }));
 
-  function drawSky(t, k) {
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, rgb(mix([46, 40, 84], [255, 196, 120], k)));
-    g.addColorStop(0.6, rgb(mix([92, 78, 130], [255, 230, 180], k)));
-    g.addColorStop(1, rgb(mix([60, 52, 96], [214, 242, 201], k)));
+  function drawBackground() {
+    const g = ctx.createRadialGradient(W / 2, H * 0.45, 40, W / 2, H * 0.5, W * 0.7);
+    g.addColorStop(0, "#2a2140"); g.addColorStop(1, "#120d1d");
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    // stars fade as the dawn comes
-    ctx.fillStyle = "#fff";
-    STARS.forEach(s => {
-      ctx.globalAlpha = (1 - k) * (0.5 + 0.5 * Math.sin(t * 2 + s.p));
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill();
-    });
-    ctx.globalAlpha = 1;
-    // sun rises behind the cloud
-    const sy = 150 - 70 * k, sun = ctx.createRadialGradient(540, sy, 10, 540, sy, 110);
-    sun.addColorStop(0, `rgba(255,236,150,${0.2 + 0.8 * k})`); sun.addColorStop(1, "rgba(255,236,150,0)");
-    ctx.fillStyle = sun; ctx.fillRect(400, 0, 240, 300);
-    ctx.fillStyle = `rgba(255,214,90,${k})`;
-    ctx.beginPath(); ctx.arc(540, sy, 34, 0, 7); ctx.fill();
-    // rainbow when Saul is at peace
-    if (k > 0.85) {
-      ctx.globalAlpha = (k - 0.85) / 0.15 * 0.5; ctx.lineWidth = 7;
-      ["#FF8A5B", "#FFC93C", "#63C67A", "#4CB4E7", "#7C5CBF"].forEach((c, n) => {
-        ctx.strokeStyle = c; ctx.beginPath(); ctx.arc(330, 420, 330 - n * 7, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
-      });
-      ctx.globalAlpha = 1;
+  }
+
+  function updateInk(dt) {
+    // each note's colour spreads out softly and fades, like ink in water
+    ix.clearRect(0, 0, ink.width, ink.height);
+    ix.globalCompositeOperation = "lighter";
+    for (let k = blooms.length - 1; k >= 0; k--) {
+      const b = blooms[k];
+      b.x += b.vx * dt; b.y += b.vy * dt; b.vx *= Math.pow(0.2, dt); b.vy *= Math.pow(0.3, dt);
+      b.r += dt * (110 - Math.min(80, b.r * 0.6)); b.a -= dt * 0.5;
+      if (b.a <= 0) { blooms.splice(k, 1); continue; }
+      const x = b.x / SC, y = b.y / SC, r = b.r / SC;
+      const g = ix.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, rgba(b.c, Math.min(1, b.a * 1.1))); g.addColorStop(0.45, rgba(b.c, b.a * 0.5)); g.addColorStop(1, rgba(b.c, 0));
+      ix.fillStyle = g; ix.fillRect(x - r, y - r, r * 2, r * 2);
     }
-    // hills
-    ctx.fillStyle = rgb(mix([52, 74, 70], [99, 198, 122], k));
-    ctx.beginPath(); ctx.moveTo(0, H); ctx.quadraticCurveTo(160, 300, 330, 350); ctx.quadraticCurveTo(500, 395, 640, 320); ctx.lineTo(640, H); ctx.fill();
+    if (blooms.length > 60) blooms.splice(0, blooms.length - 60);
+    ix.globalCompositeOperation = "source-over";
   }
 
-  function drawStorm(t, k) {
-    const a = 1 - k;
-    if (a <= 0.02) return;
-    const cx = 540 + k * 120, cy = 70 - k * 30;
-    ctx.globalAlpha = a;
-    // rain
-    ctx.strokeStyle = "rgba(190,210,255,.7)"; ctx.lineWidth = 2;
-    for (let n = 0; n < 9; n++) {
-      const x = cx - 60 + n * 15, y = cy + 30 + ((t * 160 + n * 37) % 70);
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 4, y + 10); ctx.stroke();
-    }
-    // the dark cloud
-    ctx.fillStyle = rgb(mix([70, 66, 92], [235, 238, 245], k));
-    [[-48, 8, 30], [-16, -8, 38], [22, 2, 32], [52, 12, 24], [0, 18, 36]].forEach(([dx, dy, r]) => {
-      ctx.beginPath(); ctx.arc(cx + dx, cy + dy, r * (0.6 + 0.4 * a), 0, 7); ctx.fill();
-    });
-    // a flash of lightning now and then, while the cloud is still dark
-    if (a > 0.5 && Math.sin(t * 1.3) > 0.985) {
-      ctx.strokeStyle = "#FFE680"; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(cx, cy + 30); ctx.lineTo(cx - 10, cy + 55); ctx.lineTo(cx + 4, cy + 58); ctx.lineTo(cx - 8, cy + 85); ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function drawSaul(t, k) {
-    // King Saul listens on his throne: his face changes as he feels better
-    const x = 560, y = 300;
-    ctx.fillStyle = "rgba(0,0,0,.18)";
-    ctx.beginPath(); ctx.ellipse(x, y + 52, 46, 8, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = "#8B4A2B"; ctx.fillRect(x - 34, y - 20, 68, 70);          // throne
-    ctx.fillStyle = "#C97A22"; ctx.fillRect(x - 28, y - 14, 56, 60);
-    ctx.font = "44px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    const face = k < 0.34 ? "😣" : k < 0.67 ? "😐" : k < 1 ? "🙂" : "😊";
-    ctx.fillText(face, x, y + 14 + (k >= 1 ? Math.sin(t * 4) * 2 : 0));
-    ctx.font = "28px serif"; ctx.fillText("👑", x, y - 22);
-    ctx.font = "700 13px Fredoka, sans-serif"; ctx.fillStyle = "#fff";
-    ctx.fillText("King Saul", x, y + 66);
-  }
-
-  function drawHarp(t) {
-    const left = X0 - 32, right = X0 + GAP * 7 + 32;
-    // glowing aura behind the harp grows with each note
-    const aura = ctx.createRadialGradient(330, 210, 20, 330, 210, 230);
-    aura.addColorStop(0, `rgba(255,220,140,${0.15 + 0.25 * calm / 100})`); aura.addColorStop(1, "rgba(255,220,140,0)");
-    ctx.fillStyle = aura; ctx.fillRect(80, 0, 500, H);
-    // arms
-    const wood = ctx.createLinearGradient(left, 0, right, 0);
-    wood.addColorStop(0, "#E9A93F"); wood.addColorStop(0.5, "#FFD27A"); wood.addColorStop(1, "#C97A22");
-    ctx.lineCap = "round"; ctx.strokeStyle = wood; ctx.lineWidth = 16;
-    ctx.beginPath(); ctx.moveTo(left + 10, BOTTOM); ctx.bezierCurveTo(left - 30, 220, left - 10, 110, left + 6, 64); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(right - 10, BOTTOM); ctx.bezierCurveTo(right + 24, 240, right + 20, 190, right + 10, 160); ctx.stroke();
-    // slanted crossbar: long strings on the left, short on the right
-    ctx.lineWidth = 14;
-    ctx.beginPath(); ctx.moveTo(left - 2, strings[0].top - 18); ctx.lineTo(right + 18, strings[7].top + 6); ctx.stroke();
-    // tuning pegs
-    ctx.fillStyle = "#8B4A2B";
-    strings.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.top - 4, 4, 0, 7); ctx.fill(); });
-    // strings
-    strings.forEach(s => {
-      const wiggle = s.amp * Math.sin(s.phase) * (s.dir || 1);
-      const midY = (s.top + BOTTOM) / 2;
-      if (s.glow > 0.02 || s.hint > 0.02) {
-        ctx.save();
-        ctx.shadowColor = s.c; ctx.shadowBlur = 24 * Math.max(s.glow, s.hint);
-        ctx.strokeStyle = s.c; ctx.globalAlpha = Math.max(s.glow, s.hint); ctx.lineWidth = 9;
-        ctx.beginPath(); ctx.moveTo(s.x, s.top); ctx.quadraticCurveTo(s.x + wiggle * 2, midY, s.x, BOTTOM); ctx.stroke();
-        ctx.restore();
-      }
-      ctx.strokeStyle = s.c; ctx.lineWidth = 3.5;
-      ctx.beginPath(); ctx.moveTo(s.x, s.top); ctx.quadraticCurveTo(s.x + wiggle * 2, midY, s.x, BOTTOM); ctx.stroke();
-      // a little star shows the string Buddy just played
-      if (s.hint > 0.05) {
-        ctx.globalAlpha = s.hint; ctx.font = "22px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText("⭐", s.x, s.top - 26 - 6 * s.hint); ctx.globalAlpha = 1;
-      }
-    });
-    // sound box
-    const box = ctx.createLinearGradient(0, BOTTOM - 6, 0, BOTTOM + 52);
-    box.addColorStop(0, "#C97A22"); box.addColorStop(1, "#8B4A2B");
-    ctx.fillStyle = box;
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(left - 14, BOTTOM - 6, right - left + 28, 54, 20) : ctx.rect(left - 14, BOTTOM - 6, right - left + 28, 54); ctx.fill();
-    ctx.fillStyle = "#5c2f1a"; ctx.beginPath(); ctx.ellipse(330, BOTTOM + 22, 26, 12, 0, 0, 7); ctx.fill();
-    // note letters on the box
-    ctx.font = "700 12px Fredoka, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#FFF6E5";
-    strings.forEach((s, i) => ctx.fillText(i + 1, s.x, BOTTOM + 40));
-  }
-
-  function drawTrail() {
-    ctx.save(); ctx.globalCompositeOperation = "lighter";
-    trail.forEach(p => {
-      const near = strings.reduce((a, s) => Math.abs(s.x - p.x) < Math.abs(a.x - p.x) ? s : a, strings[0]);
-      const r = 26 * p.life, g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
-      g.addColorStop(0, near.c + "88"); g.addColorStop(1, near.c + "00");
-      ctx.fillStyle = g; ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
+  function drawInk() {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(ink, 0, 0, W, H);
+    ripples.forEach(r => {
+      ctx.strokeStyle = rgba(r.c, r.a * 0.5); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2); ctx.stroke();
     });
     ctx.restore();
   }
 
-  function drawSparks() {
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    sparks.forEach(p => {
-      ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.c;
-      ctx.font = (p.ch === "✦" ? 14 : 24) + "px serif";
-      ctx.fillText(p.ch, p.x + Math.sin(p.wob) * 6, p.y);
-    });
-    ctx.globalAlpha = 1;
+  function woodGradient(x0, y0, x1, y1, dark) {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, dark ? "#5a2e17" : "#8a4a22");
+    g.addColorStop(0.45, dark ? "#7d4220" : "#c0773a");
+    g.addColorStop(1, dark ? "#4a2412" : "#7a3d1b");
+    return g;
   }
 
-  let shown = 0, prevT = 0, visible = true, raf = 0;
+  function drawSoundBox() {
+    ctx.fillStyle = woodGradient(140, 400, 600, 160, true);
+    ctx.beginPath();
+    ctx.moveTo(130, 390); ctx.lineTo(585, 150); ctx.quadraticCurveTo(622, 150, 618, 182);
+    ctx.lineTo(250, 410); ctx.quadraticCurveTo(160, 418, 130, 390); ctx.fill();
+    // a sound hole and the grain of the wood
+    ctx.strokeStyle = "rgba(0,0,0,.18)"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(190, 392); ctx.lineTo(592, 176); ctx.stroke();
+    ctx.fillStyle = "#2a1409";
+    ctx.beginPath(); ctx.ellipse(330, 330, 15, 7, -0.48, 0, Math.PI * 2); ctx.fill();
+    // lighter top board where the strings go in
+    ctx.strokeStyle = "#d89a55"; ctx.lineWidth = 7; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(140, 385); ctx.lineTo(585, 154); ctx.stroke();
+    // feet
+    ctx.fillStyle = "#3a1c0e";
+    ctx.beginPath(); ctx.ellipse(180, 408, 80, 8, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawFrame() {
+    // pillar
+    ctx.fillStyle = woodGradient(92, 0, 132, 0, false);
+    ctx.beginPath();
+    ctx.moveTo(98, 52); ctx.quadraticCurveTo(88, 220, 112, 396); ctx.lineTo(136, 396); ctx.quadraticCurveTo(116, 220, 124, 52); ctx.closePath(); ctx.fill();
+    // gold rings on the pillar
+    ctx.fillStyle = "#e6b84a";
+    [[96, 70], [100, 360]].forEach(([x, y]) => ctx.fillRect(x - 2, y, 30, 6));
+    // neck (the curved top piece the strings hang from)
+    ctx.fillStyle = woodGradient(100, 20, 600, 140, false);
+    ctx.beginPath();
+    for (let x = 96; x <= 600; x += 6) ctx.lineTo(x, neckY(Math.min(x, 584)) - 30 + (x > 584 ? (x - 584) * 0.6 : 0));
+    for (let x = 600; x >= 96; x -= 6) ctx.lineTo(x, x > 584 ? neckY(584) + (x - 584) * 2.4 : neckY(x) + 2);
+    ctx.closePath(); ctx.fill();
+    // crown
+    ctx.fillStyle = "#e6b84a";
+    ctx.beginPath(); ctx.arc(110, 34, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#a87924";
+    ctx.beginPath(); ctx.arc(110, 34, 7, 0, Math.PI * 2); ctx.fill();
+    // tuning pins
+    strings.forEach(s => {
+      ctx.fillStyle = "#d9d2c4"; ctx.beginPath(); ctx.arc(s.x, s.top - 8, 3.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#e6b84a"; ctx.beginPath(); ctx.arc(s.x, s.top - 1, 2.2, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+
+  const SEG = 28;
+  function stringPath(s, offsetAt) {
+    ctx.beginPath();
+    for (let k = 0; k <= SEG; k++) {
+      const u = k / SEG, y = s.top + (s.bot - s.top) * u;
+      const x = s.x + offsetAt(u);
+      k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+  }
+  function drawStrings(t) {
+    ctx.lineCap = "round";
+    strings.forEach(s => {
+      const e = energy(s), bright = Math.min(1, e / 6);
+      // the note's colour glows along a ringing string
+      const col = s.tint.map((v, k) => Math.round(v + (s.c[k] - v) * Math.min(1, bright * 0.9 + s.glow * 0.3)));
+      if (s.held) {
+        // being pulled: a sharp bend at the finger
+        const { p, h } = s.held;
+        stringPath(s, u => u < p ? h * u / p : h * (1 - u) / (1 - p));
+        ctx.strokeStyle = rgba(col, 1); ctx.lineWidth = s.width; ctx.stroke();
+        return;
+      }
+      if (e > 0.05) {
+        // a real string moves too fast to see clearly: draw a soft blur of where it swings
+        const phase = t * (14 + s.i * 1.6) * Math.PI * 2;
+        const blur = lowMotion ? 1 : 6;
+        ctx.save();
+        ctx.shadowColor = rgba(s.c, 0.9); ctx.shadowBlur = 14 * bright;
+        for (let k = 0; k < blur; k++) {
+          const ph = phase + k * Math.PI * 2 / blur;
+          stringPath(s, u => shapeAt(s, u, ph));
+          ctx.strokeStyle = rgba(col, 0.75 / blur + 0.08); ctx.lineWidth = s.width; ctx.stroke();
+        }
+        ctx.restore();
+        // the string itself, caught at this instant
+        stringPath(s, u => shapeAt(s, u, phase));
+        ctx.strokeStyle = rgba(col, 0.95); ctx.lineWidth = s.width * 0.9; ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.moveTo(s.x, s.top); ctx.lineTo(s.x, s.bot);
+        ctx.strokeStyle = rgba(s.tint, 1); ctx.lineWidth = s.width; ctx.stroke();
+        // a thin highlight so the string looks round
+        ctx.beginPath(); ctx.moveTo(s.x - s.width * 0.25, s.top); ctx.lineTo(s.x - s.width * 0.25, s.bot);
+        ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = 1; ctx.stroke();
+      }
+      // a soft halo above the string Buddy just played
+      if (s.hint > 0.05) {
+        const g = ctx.createRadialGradient(s.x, s.top - 8, 0, s.x, s.top - 8, 22);
+        g.addColorStop(0, rgba(s.c, s.hint)); g.addColorStop(1, rgba(s.c, 0));
+        ctx.fillStyle = g; ctx.fillRect(s.x - 22, s.top - 30, 44, 44);
+      }
+    });
+  }
+
+  let prevT = 0, visible = true, raf = 0;
   function frame(ms) {
     const t = ms / 1000, dt = Math.min(0.05, prevT ? t - prevT : 0.016);
     prevT = t;
-    shown += (calm / 100 - shown) * Math.min(1, dt * 3);       // ease the sky towards the calm level
     strings.forEach(s => {
-      s.phase += dt * 55; s.amp *= Math.pow(0.04, dt);
-      s.glow *= Math.pow(0.08, dt); s.hint *= Math.pow(0.15, dt);
+      s.age += dt;
+      s.glow *= Math.pow(0.1, dt);
+      s.hint = (s.hint || 0) * Math.pow(0.12, dt);
     });
-    for (let k = sparks.length - 1; k >= 0; k--) {
-      const p = sparks[k];
-      p.x += p.vx * dt; p.y += p.vy * dt; p.wob += dt * 5; p.life -= dt * 0.7;
-      if (p.life <= 0) sparks.splice(k, 1);
+    for (let k = ripples.length - 1; k >= 0; k--) {
+      const r = ripples[k]; r.r += dt * 160; r.a -= dt * 1.1;
+      if (r.a <= 0) ripples.splice(k, 1);
     }
-    for (let k = trail.length - 1; k >= 0; k--) { trail[k].life -= dt * 3; if (trail[k].life <= 0) trail.splice(k, 1); }
-
-    drawSky(t, shown); drawStorm(t, shown); drawSaul(t, shown);
-    drawHarp(t); drawTrail(); drawSparks();
+    updateInk(dt);
+    drawBackground(); drawInk(); drawSoundBox(); drawStrings(t); drawFrame();
     raf = visible ? requestAnimationFrame(frame) : 0;
   }
   // pause the animation while the harp is scrolled off screen
@@ -880,7 +943,7 @@ function initDavidHarp() {
   fitCanvas();
   addEventListener("resize", fitCanvas);
   raf = requestAnimationFrame(frame);
-  canvas.__harp = { get state() { return { calm, calmDone, listening, buddyBusy, seq: seq.slice(), step }; }, pluck: i => pluck(i, true, 1), strings };
+  canvas.__harp = { get state() { return { calm, calmDone, listening, buddyBusy, seq: seq.slice(), step }; }, pluck: i => pluck(i, true), strings };
 }
 
 document.addEventListener("DOMContentLoaded", () => {
