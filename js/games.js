@@ -728,6 +728,7 @@ function initDavidHarp() {
   /* ---------- drawing: wood grain, lighting and steel ---------- */
   function fitCanvas() {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (canvas.width === W * dpr) return;   // resizing a canvas wipes it, so only do it when needed
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }

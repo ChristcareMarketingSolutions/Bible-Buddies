@@ -728,7 +728,11 @@ img, video, canvas { max-width: 100%; }
   background: #0e0b09; border: 0; border-radius: var(--radius);
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
   touch-action: none; cursor: pointer;
+  /* no grey tap flash or long-press menu over the harp on phones */
+  -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none;
+  user-select: none; -webkit-user-select: none;
 }
+.harp-canvas:focus { outline: none; }
 .harp-canvas:focus-visible { outline: 4px solid var(--sun-deep); outline-offset: 3px; }
 
 /* Ask Buddy chatbot */
