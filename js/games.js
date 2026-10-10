@@ -479,18 +479,16 @@ function initDavidSling() {
 
 /* ===================================================================
    DAVID'S HARP
-   A wooden harp with real-looking strings. Pull a string and let go,
-   tap it, or sweep across them all. Each string rings like a real one:
-   the pluck starts as a sharp bend, then settles into a smooth, fading
-   blur (the sum of its harmonics). Every note also blooms its own colour
-   into the air around the harp. Plus a copy-the-tune game and a song.
+   A wooden harp with steel strings. Pull a string and let go, tap it,
+   or sweep across them all. Each string rings like a real one: the
+   pluck starts as a sharp bend, then settles into a smooth, fading
+   blur (the sum of its harmonics). Plus a copy-the-tune game and a song.
    =================================================================== */
 function initDavidHarp() {
   const canvas = document.querySelector("[data-harp-canvas]");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const levelEl = document.querySelector("[data-harp-level]");
-  const calmEl  = document.querySelector("[data-harp-calm]");
   const fbEl    = document.querySelector("[data-harp-feedback]");
   const playBtn = document.querySelector("[data-harp-play]");
   const songBtn = document.querySelector("[data-harp-song]");
@@ -502,28 +500,19 @@ function initDavidHarp() {
   const soundY = x => 385 - (x - 140) * 215 / 420;                 // top of the sound box (strings end here)
   const neckY  = x => { const t = (x - 110) / 470; return 50 + 60 * t - 22 * Math.sin(t * Math.PI * 2); };
 
-  // Two octaves of C major pentatonic, low (long, left) to high (short, right).
-  // Each note has its own colour for the colour bloom.
-  const NOTES = [
-    { f: 261.63, c: [255, 92, 92] },  { f: 293.66, c: [255, 160, 64] }, { f: 329.63, c: [255, 214, 70] },
-    { f: 392.00, c: [72, 214, 150] }, { f: 440.00, c: [80, 160, 255] }, { f: 523.25, c: [255, 120, 150] },
-    { f: 587.33, c: [255, 186, 92] }, { f: 659.25, c: [240, 236, 110] }, { f: 783.99, c: [110, 232, 210] },
-    { f: 880.00, c: [170, 140, 255] }
-  ];
+  // Two octaves of C major pentatonic, low (long, left) to high (short, right)
+  const FREQS = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
   const X0 = 170, GAP = 36, MAX_PULL = 16, MODES = 7;
-  const strings = NOTES.map((note, i) => {
+  const strings = FREQS.map((f, i) => {
     const x = X0 + i * GAP;
     return {
-      ...note, i, x, top: neckY(x), bot: soundY(x),
-      // like a real harp: the C strings are red, the lowest strings are wound with bronze wire
-      tint: i % 5 === 0 ? [196, 52, 44] : i < 3 ? [176, 132, 82] : [238, 222, 190],
-      width: 3.4 - i * 0.18,
-      modes: new Float32Array(MODES), age: 9, decay: 2.6 - i * 0.14, glow: 0, last: 0
+      f, i, x, top: neckY(x), bot: soundY(x),
+      width: 2.8 - i * 0.16, wound: i < 3,                          // the low strings are wound wire
+      modes: new Float32Array(MODES), age: 9, decay: 2.6 - i * 0.14, last: 0, hint: 0
     };
   });
-  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
-  /* ---------- sound: a plucked string (Karplus-Strong) with a soft room echo ---------- */
+  /* ---------- sound: a plucked steel string (Karplus-Strong) with a soft room echo ---------- */
   let audio, master, buffers = [];
   const ringing = [];   // the sound each string is making now
   function ac() {
@@ -544,11 +533,11 @@ function initDavidHarp() {
   function stringSound(i) {
     const a = audio, sr = a.sampleRate, len = Math.floor(sr * 3);
     const buf = a.createBuffer(1, len, sr), out = buf.getChannelData(0);
-    const period = Math.max(2, Math.round(sr / NOTES[i].f)), ring = new Float32Array(period);
-    const soft = 0.6 - i * 0.03;                         // low strings sound warmer, high ones brighter
+    const period = Math.max(2, Math.round(sr / FREQS[i])), ring = new Float32Array(period);
+    const soft = 0.5 - i * 0.03;                         // low strings sound warmer, high ones brighter
     let prev = 0;
     for (let k = 0; k < period; k++) { prev = soft * prev + (1 - soft) * (Math.random() * 2 - 1); ring[k] = prev; }
-    const loss = 0.4988 - i * 0.00008;
+    const loss = 0.4990 - i * 0.00008;
     let idx = 0;
     for (let n = 0; n < len; n++) {
       const next = (idx + 1) % period, v = ring[idx];
@@ -592,41 +581,16 @@ function initDavidHarp() {
   }
   const energy = s => Math.abs(s.modes[0]) * Math.exp(-s.age * 0.6 / s.decay);
 
-  /* ---------- colour bloom (drawn small, then spread softly over the whole harp) ---------- */
-  const SC = 4, ink = document.createElement("canvas");
-  ink.width = W / SC; ink.height = H / SC;
-  const ix = ink.getContext("2d");
-  const blooms = [], ripples = [];
-  function bloom(x, y, c, strength, vx) {
-    blooms.push({ x, y, c, r: 10, a: 0.9 * strength, vx: vx * 40, vy: -18 });
-    if (!lowMotion) ripples.push({ x, y, c, r: 6, a: 0.7 * strength });
-  }
-
   /* ---------- playing a string ---------- */
-  let calm = 0, calmDone = false;
   function say(t) { if (fbEl) fbEl.textContent = t; }
-  function addCalm(n) {
-    if (calmDone) return;
-    calm = Math.min(100, calm + n);
-    if (calmEl) calmEl.textContent = Math.round(calm) + "%";
-    if (calm >= 100) {
-      calmDone = true;
-      say("King Saul feels peaceful! When David played the harp, Saul felt better. (1 Samuel 16:23)");
-      if (typeof bbAddStars === "function") bbAddStars(2, "harp-calm");
-      if (typeof bbCelebrate === "function") bbCelebrate();
-    }
-  }
   function pluck(i, user, h, p) {
     const s = strings[i], now = performance.now();
     if (user && now - s.last < 60) return;
     s.last = now;
     h = h || MAX_PULL * 0.8; p = p == null ? 0.35 : p;
     setPluck(s, p, h);
-    s.glow = 1;
-    const vol = Math.min(1, Math.abs(h) / MAX_PULL);
-    playNote(i, vol);
-    bloom(s.x, s.top + (s.bot - s.top) * p, s.c, 0.5 + 0.5 * vol, Math.sign(h));
-    if (user) { addCalm(1.4); if (listening) checkStep(i); }
+    playNote(i, Math.min(1, Math.abs(h) / MAX_PULL));
+    if (user && listening) checkStep(i);
   }
 
   /* ---------- touch / mouse: pull a string and let go, tap, or sweep ---------- */
@@ -672,12 +636,6 @@ function initDavidHarp() {
     const p = pos(e), prev = last;
     last = p;
     if (!prev) return;
-    // a soft trail of colour follows the finger over the strings
-    const k = nearest(p);
-    if (k >= 0 && !lowMotion && (down || e.pointerType === "mouse")) {
-      const sp = Math.min(1, Math.hypot(p.x - prev.x, p.y - prev.y) / 30);
-      if (sp > 0.1) blooms.push({ x: p.x, y: p.y, c: strings[k].c, r: 3, a: 0.35 * sp, vx: (p.x - prev.x) * 2, vy: 0 });
-    }
     if (down) {
       if (grab) {
         const s = strings[grab.i];
@@ -686,7 +644,6 @@ function initDavidHarp() {
       }
       // fast sweep: each string the finger crosses is caught and let go
       crossings(prev, p).forEach(h => {
-        if (strings[h.i] === (grab && strings[grab.i])) return;
         const dir = Math.sign(p.x - prev.x) || 1;
         const sp = Math.min(1, Math.abs(p.x - prev.x) / 24);
         pluck(h.i, true, dir * MAX_PULL * (0.45 + 0.55 * sp), along(strings[h.i], h.y));
@@ -721,7 +678,7 @@ function initDavidHarp() {
   function newTune() { stopBuddy(); seq = [rand()]; startRound(); }
   function startRound() {
     if (levelEl) levelEl.textContent = seq.length;
-    say("Listen to Buddy... watch which strings glow!");
+    say("Listen to Buddy... watch which strings move!");
     listening = false; step = 0; buddyBusy = true;
     const gap = 600;
     seq.forEach((idx, k) => later(() => buddyPlays(idx), gap * (k + 1)));
@@ -768,150 +725,186 @@ function initDavidHarp() {
     say("Free play! Pull a string and let go, or sweep across them all.");
   });
 
-  /* ---------- drawing ---------- */
+  /* ---------- drawing: wood grain, lighting and steel ---------- */
   function fitCanvas() {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function drawBackground() {
-    const g = ctx.createRadialGradient(W / 2, H * 0.45, 40, W / 2, H * 0.5, W * 0.7);
-    g.addColorStop(0, "#2a2140"); g.addColorStop(1, "#120d1d");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  }
-
-  function updateInk(dt) {
-    // each note's colour spreads out softly and fades, like ink in water
-    ix.clearRect(0, 0, ink.width, ink.height);
-    ix.globalCompositeOperation = "lighter";
-    for (let k = blooms.length - 1; k >= 0; k--) {
-      const b = blooms[k];
-      b.x += b.vx * dt; b.y += b.vy * dt; b.vx *= Math.pow(0.2, dt); b.vy *= Math.pow(0.3, dt);
-      b.r += dt * (110 - Math.min(80, b.r * 0.6)); b.a -= dt * 0.5;
-      if (b.a <= 0) { blooms.splice(k, 1); continue; }
-      const x = b.x / SC, y = b.y / SC, r = b.r / SC;
-      const g = ix.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, rgba(b.c, Math.min(1, b.a * 1.1))); g.addColorStop(0.45, rgba(b.c, b.a * 0.5)); g.addColorStop(1, rgba(b.c, 0));
-      ix.fillStyle = g; ix.fillRect(x - r, y - r, r * 2, r * 2);
+  // a tile of wood grain, made once: fine wavy lines and darker streaks
+  function grainTile(base, dark, light, seed) {
+    const c = document.createElement("canvas"); c.width = 256; c.height = 256;
+    const g = c.getContext("2d");
+    g.fillStyle = base; g.fillRect(0, 0, 256, 256);
+    let r = seed;
+    const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+    for (let k = 0; k < 90; k++) {
+      const y0 = rnd() * 256, amp = 1 + rnd() * 3, freq = 0.01 + rnd() * 0.03, ph = rnd() * 6;
+      g.strokeStyle = rnd() < 0.7 ? dark : light;
+      g.globalAlpha = 0.08 + rnd() * 0.22; g.lineWidth = 0.5 + rnd() * 1.6;
+      g.beginPath();
+      for (let x = -4; x <= 260; x += 4) g.lineTo(x, y0 + Math.sin(x * freq + ph) * amp + Math.sin(x * 0.11 + ph) * 0.6);
+      g.stroke();
     }
-    if (blooms.length > 60) blooms.splice(0, blooms.length - 60);
-    ix.globalCompositeOperation = "source-over";
+    g.globalAlpha = 1;
+    return c;
+  }
+  function pattern(tile, angle) {
+    const p = ctx.createPattern(tile, "repeat");
+    if (p && p.setTransform && window.DOMMatrix) p.setTransform(new DOMMatrix().rotate(angle));
+    return p;
+  }
+  const walnut = grainTile("#5b3a22", "#2a170b", "#8a5d38", 7);
+  const spruce = grainTile("#d9b27a", "#a37a44", "#f0d3a0", 3);
+  let woodNeck, woodPillar, woodBox, woodBoard;
+  function makePatterns() {
+    woodNeck = pattern(walnut, 8); woodPillar = pattern(walnut, 92);
+    woodBox = pattern(walnut, -27); woodBoard = pattern(spruce, -27);
   }
 
-  function drawInk() {
+  // fill a path with wood, then light it: bright on one edge, shadow on the other
+  function woodFill(path, pat, x0, y0, x1, y1) {
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(ink, 0, 0, W, H);
-    ripples.forEach(r => {
-      ctx.strokeStyle = rgba(r.c, r.a * 0.5); ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2); ctx.stroke();
-    });
+    ctx.fillStyle = pat; ctx.fill(path);
+    ctx.clip(path);
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, "rgba(255,230,190,.28)"); g.addColorStop(0.35, "rgba(255,230,190,.04)");
+    g.addColorStop(0.7, "rgba(0,0,0,.12)"); g.addColorStop(1, "rgba(0,0,0,.5)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     ctx.restore();
+    // a fine dark edge and a soft varnish shine
+    ctx.strokeStyle = "rgba(20,10,4,.55)"; ctx.lineWidth = 1; ctx.stroke(path);
   }
 
-  function woodGradient(x0, y0, x1, y1, dark) {
-    const g = ctx.createLinearGradient(x0, y0, x1, y1);
-    g.addColorStop(0, dark ? "#5a2e17" : "#8a4a22");
-    g.addColorStop(0.45, dark ? "#7d4220" : "#c0773a");
-    g.addColorStop(1, dark ? "#4a2412" : "#7a3d1b");
-    return g;
+  function drawRoom() {
+    // a dim room with a warm spotlight on the harp
+    ctx.fillStyle = "#0e0b09"; ctx.fillRect(0, 0, W, H);
+    const spot = ctx.createRadialGradient(330, 190, 30, 330, 220, 420);
+    spot.addColorStop(0, "#3a2c20"); spot.addColorStop(0.55, "#1c1510"); spot.addColorStop(1, "#0a0806");
+    ctx.fillStyle = spot; ctx.fillRect(0, 0, W, H);
+    // floor
+    const floor = ctx.createLinearGradient(0, 380, 0, H);
+    floor.addColorStop(0, "rgba(60,42,28,0)"); floor.addColorStop(1, "rgba(60,42,28,.55)");
+    ctx.fillStyle = floor; ctx.fillRect(0, 370, W, 50);
+    // soft shadow under the harp
+    const sh = ctx.createRadialGradient(330, 410, 10, 330, 410, 260);
+    sh.addColorStop(0, "rgba(0,0,0,.6)"); sh.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.save(); ctx.scale(1, 0.12); ctx.fillStyle = sh; ctx.fillRect(40, 380 / 0.12, 600, 60 / 0.12); ctx.restore();
   }
 
   function drawSoundBox() {
-    ctx.fillStyle = woodGradient(140, 400, 600, 160, true);
-    ctx.beginPath();
-    ctx.moveTo(130, 390); ctx.lineTo(585, 150); ctx.quadraticCurveTo(622, 150, 618, 182);
-    ctx.lineTo(250, 410); ctx.quadraticCurveTo(160, 418, 130, 390); ctx.fill();
-    // a sound hole and the grain of the wood
-    ctx.strokeStyle = "rgba(0,0,0,.18)"; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(190, 392); ctx.lineTo(592, 176); ctx.stroke();
-    ctx.fillStyle = "#2a1409";
-    ctx.beginPath(); ctx.ellipse(330, 330, 15, 7, -0.48, 0, Math.PI * 2); ctx.fill();
-    // lighter top board where the strings go in
-    ctx.strokeStyle = "#d89a55"; ctx.lineWidth = 7; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(140, 385); ctx.lineTo(585, 154); ctx.stroke();
-    // feet
-    ctx.fillStyle = "#3a1c0e";
-    ctx.beginPath(); ctx.ellipse(180, 408, 80, 8, 0, 0, Math.PI * 2); ctx.fill();
+    // the body of the sound box
+    const body = new Path2D();
+    body.moveTo(126, 392); body.lineTo(586, 148); body.quadraticCurveTo(624, 146, 620, 184);
+    body.lineTo(256, 412); body.quadraticCurveTo(150, 422, 126, 392); body.closePath();
+    woodFill(body, woodBox, 300, 260, 360, 380);
+    // the pale spruce soundboard where the strings go in
+    const board = new Path2D();
+    board.moveTo(132, 384); board.lineTo(584, 146); board.lineTo(592, 158); board.lineTo(146, 396); board.closePath();
+    woodFill(board, woodBoard, 350, 255, 356, 268);
+    // centre strip and the little holes the strings pass through
+    ctx.strokeStyle = "rgba(70,40,18,.7)"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(140, 386); ctx.lineTo(586, 152); ctx.stroke();
+    strings.forEach(s => {
+      ctx.fillStyle = "#1a0f07"; ctx.beginPath(); ctx.arc(s.x, s.bot + 1, 2.4, 0, Math.PI * 2); ctx.fill();
+    });
+    // sound hole
+    ctx.fillStyle = "#120a04";
+    ctx.beginPath(); ctx.ellipse(370, 318, 13, 6, -0.48, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawFrame() {
-    // pillar
-    ctx.fillStyle = woodGradient(92, 0, 132, 0, false);
-    ctx.beginPath();
-    ctx.moveTo(98, 52); ctx.quadraticCurveTo(88, 220, 112, 396); ctx.lineTo(136, 396); ctx.quadraticCurveTo(116, 220, 124, 52); ctx.closePath(); ctx.fill();
-    // gold rings on the pillar
-    ctx.fillStyle = "#e6b84a";
-    [[96, 70], [100, 360]].forEach(([x, y]) => ctx.fillRect(x - 2, y, 30, 6));
-    // neck (the curved top piece the strings hang from)
-    ctx.fillStyle = woodGradient(100, 20, 600, 140, false);
-    ctx.beginPath();
-    for (let x = 96; x <= 600; x += 6) ctx.lineTo(x, neckY(Math.min(x, 584)) - 30 + (x > 584 ? (x - 584) * 0.6 : 0));
-    for (let x = 600; x >= 96; x -= 6) ctx.lineTo(x, x > 584 ? neckY(584) + (x - 584) * 2.4 : neckY(x) + 2);
-    ctx.closePath(); ctx.fill();
-    // crown
-    ctx.fillStyle = "#e6b84a";
-    ctx.beginPath(); ctx.arc(110, 34, 15, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#a87924";
-    ctx.beginPath(); ctx.arc(110, 34, 7, 0, Math.PI * 2); ctx.fill();
-    // tuning pins
+    // pillar: a turned wooden column
+    const pillar = new Path2D();
+    pillar.moveTo(98, 56); pillar.quadraticCurveTo(88, 220, 110, 396); pillar.lineTo(138, 396);
+    pillar.quadraticCurveTo(118, 220, 126, 56); pillar.closePath();
+    woodFill(pillar, woodPillar, 92, 0, 134, 0);
+    // turned rings near the top and bottom
+    [[95, 82], [99, 352], [104, 368]].forEach(([x, y]) => {
+      const ring = new Path2D(); ring.ellipse(x + 14, y, 17, 4.5, 0, 0, Math.PI * 2);
+      woodFill(ring, woodPillar, 0, y - 4, 0, y + 5);
+    });
+    // base
+    const base = new Path2D();
+    base.moveTo(92, 396); base.lineTo(150, 392); base.lineTo(158, 410); base.lineTo(86, 410); base.closePath();
+    woodFill(base, woodPillar, 0, 392, 0, 410);
+
+    // neck: the curved top piece the strings hang from
+    const neck = new Path2D();
+    for (let x = 96; x <= 584; x += 4) neck.lineTo(x, neckY(x) - 30);
+    // the shoulder, where the neck joins the top of the sound box
+    neck.quadraticCurveTo(614, neckY(584) - 30, 615, neckY(584) - 4);
+    neck.lineTo(614, 156); neck.lineTo(588, 156);
+    neck.quadraticCurveTo(586, 128, 584, neckY(584) + 2);
+    for (let x = 584; x >= 96; x -= 4) neck.lineTo(x, neckY(x) + 2);
+    neck.closePath();
+    woodFill(neck, woodNeck, 0, 20, 0, 140);
+    // a carved scroll at the crown
+    const crown = new Path2D(); crown.arc(111, 36, 16, 0, Math.PI * 2);
+    woodFill(crown, woodNeck, 98, 22, 124, 52);
+    ctx.strokeStyle = "rgba(20,10,4,.6)"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(111, 36, 9, 0.4, Math.PI * 1.7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(111, 36, 4, 0, Math.PI * 2); ctx.stroke();
+
+    // steel tuning pins and brass bridge pins
     strings.forEach(s => {
-      ctx.fillStyle = "#d9d2c4"; ctx.beginPath(); ctx.arc(s.x, s.top - 8, 3.2, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#e6b84a"; ctx.beginPath(); ctx.arc(s.x, s.top - 1, 2.2, 0, Math.PI * 2); ctx.fill();
+      const py = s.top - 14;
+      const pin = ctx.createRadialGradient(s.x - 1, py - 1, 0.5, s.x, py, 4);
+      pin.addColorStop(0, "#ffffff"); pin.addColorStop(0.4, "#b9c0c8"); pin.addColorStop(1, "#4b5157");
+      ctx.fillStyle = pin; ctx.beginPath(); ctx.arc(s.x, py, 3.6, 0, Math.PI * 2); ctx.fill();
+      const br = ctx.createRadialGradient(s.x - 0.7, s.top - 1.7, 0.3, s.x, s.top - 1, 2.6);
+      br.addColorStop(0, "#fff3c4"); br.addColorStop(0.5, "#c9a24a"); br.addColorStop(1, "#6e5418");
+      ctx.fillStyle = br; ctx.beginPath(); ctx.arc(s.x, s.top - 1, 2.4, 0, Math.PI * 2); ctx.fill();
     });
   }
 
-  const SEG = 28;
-  function stringPath(s, offsetAt) {
+  const SEG = 30;
+  function stringPath(s, offsetAt, dx) {
     ctx.beginPath();
     for (let k = 0; k <= SEG; k++) {
       const u = k / SEG, y = s.top + (s.bot - s.top) * u;
-      const x = s.x + offsetAt(u);
+      const x = s.x + (dx || 0) + offsetAt(u);
       k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
     }
+  }
+  // a steel string: dark edge, bright highlight down one side, like a polished wire
+  function steel(s, offsetAt, alpha) {
+    ctx.globalAlpha = alpha;
+    stringPath(s, offsetAt);
+    ctx.strokeStyle = s.wound ? "#6d6a64" : "#7d858d"; ctx.lineWidth = s.width; ctx.stroke();
+    stringPath(s, offsetAt, -s.width * 0.18);
+    ctx.strokeStyle = s.wound ? "#d8d2c6" : "#eef2f5"; ctx.lineWidth = Math.max(0.6, s.width * 0.38); ctx.stroke();
+    ctx.globalAlpha = 1;
   }
   function drawStrings(t) {
     ctx.lineCap = "round";
     strings.forEach(s => {
-      const e = energy(s), bright = Math.min(1, e / 6);
-      // the note's colour glows along a ringing string
-      const col = s.tint.map((v, k) => Math.round(v + (s.c[k] - v) * Math.min(1, bright * 0.9 + s.glow * 0.3)));
+      // a faint shadow of each string on the neck and sound box
+      ctx.strokeStyle = "rgba(0,0,0,.25)"; ctx.lineWidth = s.width;
+      ctx.beginPath(); ctx.moveTo(s.x + 3, s.top + 2); ctx.lineTo(s.x + 3, s.top + 8); ctx.stroke();
+
       if (s.held) {
         // being pulled: a sharp bend at the finger
         const { p, h } = s.held;
-        stringPath(s, u => u < p ? h * u / p : h * (1 - u) / (1 - p));
-        ctx.strokeStyle = rgba(col, 1); ctx.lineWidth = s.width; ctx.stroke();
-        return;
-      }
-      if (e > 0.05) {
+        steel(s, u => u < p ? h * u / p : h * (1 - u) / (1 - p), 1);
+      } else if (energy(s) > 0.05) {
         // a real string moves too fast to see clearly: draw a soft blur of where it swings
         const phase = t * (14 + s.i * 1.6) * Math.PI * 2;
-        const blur = lowMotion ? 1 : 6;
-        ctx.save();
-        ctx.shadowColor = rgba(s.c, 0.9); ctx.shadowBlur = 14 * bright;
+        const blur = lowMotion ? 1 : 7;
         for (let k = 0; k < blur; k++) {
           const ph = phase + k * Math.PI * 2 / blur;
-          stringPath(s, u => shapeAt(s, u, ph));
-          ctx.strokeStyle = rgba(col, 0.75 / blur + 0.08); ctx.lineWidth = s.width; ctx.stroke();
+          steel(s, u => shapeAt(s, u, ph), 0.6 / blur + 0.06);
         }
-        ctx.restore();
-        // the string itself, caught at this instant
-        stringPath(s, u => shapeAt(s, u, phase));
-        ctx.strokeStyle = rgba(col, 0.95); ctx.lineWidth = s.width * 0.9; ctx.stroke();
+        steel(s, u => shapeAt(s, u, phase), 0.85);   // the string itself, caught at this instant
       } else {
-        ctx.beginPath(); ctx.moveTo(s.x, s.top); ctx.lineTo(s.x, s.bot);
-        ctx.strokeStyle = rgba(s.tint, 1); ctx.lineWidth = s.width; ctx.stroke();
-        // a thin highlight so the string looks round
-        ctx.beginPath(); ctx.moveTo(s.x - s.width * 0.25, s.top); ctx.lineTo(s.x - s.width * 0.25, s.bot);
-        ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = 1; ctx.stroke();
+        steel(s, () => 0, 1);
       }
-      // a soft halo above the string Buddy just played
+      // a soft glint above the string Buddy just played
       if (s.hint > 0.05) {
-        const g = ctx.createRadialGradient(s.x, s.top - 8, 0, s.x, s.top - 8, 22);
-        g.addColorStop(0, rgba(s.c, s.hint)); g.addColorStop(1, rgba(s.c, 0));
-        ctx.fillStyle = g; ctx.fillRect(s.x - 22, s.top - 30, 44, 44);
+        const g = ctx.createRadialGradient(s.x, s.top - 14, 0, s.x, s.top - 14, 16);
+        g.addColorStop(0, `rgba(255,240,200,${0.8 * s.hint})`); g.addColorStop(1, "rgba(255,240,200,0)");
+        ctx.fillStyle = g; ctx.fillRect(s.x - 16, s.top - 30, 32, 32);
       }
     });
   }
@@ -920,17 +913,8 @@ function initDavidHarp() {
   function frame(ms) {
     const t = ms / 1000, dt = Math.min(0.05, prevT ? t - prevT : 0.016);
     prevT = t;
-    strings.forEach(s => {
-      s.age += dt;
-      s.glow *= Math.pow(0.1, dt);
-      s.hint = (s.hint || 0) * Math.pow(0.12, dt);
-    });
-    for (let k = ripples.length - 1; k >= 0; k--) {
-      const r = ripples[k]; r.r += dt * 160; r.a -= dt * 1.1;
-      if (r.a <= 0) ripples.splice(k, 1);
-    }
-    updateInk(dt);
-    drawBackground(); drawInk(); drawSoundBox(); drawStrings(t); drawFrame();
+    strings.forEach(s => { s.age += dt; s.hint *= Math.pow(0.12, dt); });
+    drawRoom(); drawSoundBox(); drawStrings(t); drawFrame();
     raf = visible ? requestAnimationFrame(frame) : 0;
   }
   // pause the animation while the harp is scrolled off screen
@@ -940,10 +924,10 @@ function initDavidHarp() {
       if (visible && !raf) { prevT = 0; raf = requestAnimationFrame(frame); }
     }).observe(canvas);
   }
-  fitCanvas();
+  fitCanvas(); makePatterns();
   addEventListener("resize", fitCanvas);
   raf = requestAnimationFrame(frame);
-  canvas.__harp = { get state() { return { calm, calmDone, listening, buddyBusy, seq: seq.slice(), step }; }, pluck: i => pluck(i, true), strings };
+  canvas.__harp = { get state() { return { listening, buddyBusy, seq: seq.slice(), step }; }, pluck: i => pluck(i, true), strings };
 }
 
 document.addEventListener("DOMContentLoaded", () => {
