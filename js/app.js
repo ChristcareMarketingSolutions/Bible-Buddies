@@ -181,8 +181,8 @@ function initDiscover() {
     $("[data-d-story-desc]").textContent = story.description;
     const sl = $("[data-d-story-link]");
     const hasBook = typeof driveId === "function" && driveId(story.book);
-    sl.href = hasBook ? "story.html?s=" + encodeURIComponent(story.id) : "stories.html";
-    sl.textContent = hasBook ? "📖 Read Comic Story" : "Read";
+    sl.href = hasBook ? "story.html?s=" + encodeURIComponent(story.id) : "bible-stories/" + story.page + ".html";
+    sl.textContent = hasBook ? "📖 Read Comic Story" : "📖 Read the story";
     // game of the day
     const g = DISCOVER_GAMES[day % DISCOVER_GAMES.length];
     $("[data-d-game-emoji]").textContent = g.emoji;

@@ -980,6 +980,9 @@ img, video, canvas { max-width: 100%; }
 .disc-card .disc-sub { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5; margin: 0 0 1rem; padding-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .disc-card .btn { margin-top: auto; }
 #memory, #who-am-i, #scramble, #quiz, #sling, #harp, #ask-buddy { scroll-margin-top: 110px; }
+/* Games page: quick-jump menu to each game */
+.game-jump { margin-bottom: 2.2rem; }
+.game-jump .filter-btn { color: var(--ink); text-decoration: none; }
 
 /* Adventure: wide two-column layout on bigger screens */
 .featured.adventure { padding: 1.8rem 2.2rem; }
