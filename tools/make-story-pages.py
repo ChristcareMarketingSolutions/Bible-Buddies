@@ -400,7 +400,7 @@ tp.write_text(t)
 
 # ---------- sitemap ----------
 main_pages = [("", "1.0"), ("stories.html", "0.9"), ("bible-stories/", "0.9"), ("games.html", "0.9"), ("meet-jesus.html", "0.8"),
-              ("memory-verses.html", "0.8"), ("colouring.html", "0.7"), ("comics.html", "0.6"), ("explorer.html", "0.7"),
+              ("memory-verses.html", "0.8"), ("colouring.html", "0.7"), ("explorer.html", "0.7"),
               ("teachers.html", "0.7"), ("about.html", "0.5"), ("contact.html", "0.5")]
 main_pages.insert(3, ("walk-with-jesus/", "0.9"))
 urls = [(SITE + p, pr) for p, pr in main_pages] + [(f"{SITE}bible-stories/{s}.html", "0.7") for s, a, i in pages] + \
