@@ -152,10 +152,11 @@ function initScramble() {
     do { s = shuffle(w.split("")).join(""); } while (s === w && w.length > 1);
     return s;
   }
-  function next() {
+  function next(focus) {
     current = SCRAMBLE_WORDS[Math.floor(Math.random() * SCRAMBLE_WORDS.length)];
     wordEl.textContent = scrambleStr(current);
-    input.value = ""; fbEl.textContent = ""; input.focus();
+    input.value = ""; fbEl.textContent = "";
+    if (focus) input.focus({ preventScroll: true });   // never on page load: that would jump the page down here
   }
   function check() {
     if (input.value.trim().toUpperCase() === current) {
@@ -163,13 +164,13 @@ function initScramble() {
       fbEl.textContent = "Correct! ⭐"; fbEl.style.color = "var(--meadow-deep)";
       bbAddStars(1, "scramble-total");   // one-time bonus for playing
       bbCelebrate();
-      setTimeout(next, 900);
+      setTimeout(() => next(true), 900);
     } else {
       fbEl.textContent = "Try again!"; fbEl.style.color = "var(--coral-deep)";
     }
   }
   checkEl.addEventListener("click", check);
-  skipEl.addEventListener("click", next);
+  skipEl.addEventListener("click", () => next(true));
   input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
   next();
 }
