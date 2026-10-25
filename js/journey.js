@@ -468,10 +468,15 @@
     }
   }
   const GREENS = ["#4FAE45", "#62C452", "#7ED35C", "#45A23E"], OLIVES = ["#86A65E", "#9DBC74", "#B3CB8C", "#7D9C57"];
+  // canopy: one clump on top of the trunk and three evenly round it, so the tree looks the same from every side
+  function canopy(g, y, r, cols, spread = 1, low = 0.55) {
+    leafClump(g, 0, y, 0, r, cols);
+    for (let k = 0; k < 3; k++) { const a = k * 2.094 + 0.5; leafClump(g, Math.cos(a) * r * spread, y - r * low, Math.sin(a) * r * spread, r * 0.72, cols); }
+  }
   function olive(s = 1) {
     const g = new THREE.Group();
-    g.add(part(G.trunk, "#7B6046", -0.15, 0.8, 0, 0.55, 1.7, 0.55, 0, 0, 0.18)); g.add(part(G.trunk, "#6E553D", 0.3, 1.9, 0.1, 0.4, 1.3, 0.4, 0.1, 0, -0.35));
-    [[0, 2.9, 0, 1.25], [-1.1, 2.6, 0.4, 0.95], [1.1, 2.7, -0.4, 1]].forEach(([x, y, z, r]) => leafClump(g, x, y, z, r, OLIVES));
+    g.add(part(G.trunk, "#7B6046", 0, 1.1, 0, 0.6, 2.2, 0.6));
+    canopy(g, 2.9, 1.15, OLIVES, 0.95, 0.35);
     g.scale.setScalar(s); return g;
   }
   function cypress(s = 1) {
@@ -480,20 +485,23 @@
     g.scale.setScalar(s); return g;
   }
   function roundTree(s = 1) {
-    const g = new THREE.Group(); g.add(part(G.trunk, "#7A5532", 0, 1.3, 0, 0.6, 2.6, 0.6));
-    [[-0.5, 1.2], [0.5, -1.2]].forEach(([a, b]) => g.add(part(G.trunk, "#7A5532", a, 2.4, 0, 0.25, 1.2, 0.25, 0, 0, b * 0.5)));
-    [[0, 3.9, 0, 1.75], [-1.2, 3.1, 0.5, 1.25], [1.2, 3.2, -0.3, 1.3]].forEach(([x, y, z, r]) => leafClump(g, x, y, z, r, GREENS));
+    const g = new THREE.Group(); g.add(part(G.trunk, "#7A5532", 0, 1.5, 0, 0.6, 3, 0.6));
+    canopy(g, 4.1, 1.6, GREENS, 0.8, 0.5);
     g.scale.setScalar(s); return g;
   }
   function palm(s = 1) {   // date palm (John 12:13)
-    const g = new THREE.Group(), lean = dr(-0.25, 0.25); let x = 0, y = 0;
-    for (let k = 0; k < 6; k++) { g.add(part(G.trunk, k % 2 ? "#A07A50" : "#8E6A44", x, y + 0.55, 0, 0.42 - k * 0.03, 1.15, 0.42 - k * 0.03, 0, 0, -lean)); y += 1.05; x += lean * 0.5 * (k + 1) * 0.25; }
-    for (let k = 0; k < 8; k++) {
-      const fr = new THREE.Group(), cols = k % 2 ? "#4FAE45" : "#62C452";
-      fr.add(part(G.box, cols, 0, 0, 1.1, 0.55, 0.06, 2.2, -0.25)); fr.add(part(G.box, cols, 0, -0.55, 2.7, 0.45, 0.06, 1.4, -0.7));
-      fr.position.set(x, y, 0); fr.rotation.y = k * Math.PI / 4 + dr(-0.2, 0.2); g.add(fr);
+    const g = new THREE.Group(), lean = dr(-0.12, 0.12), seg = 1.05, n = 6, sx = Math.sin(lean), cy = Math.cos(lean);
+    for (let k = 0; k < n; k++) g.add(part(G.trunk, k % 2 ? "#A07A50" : "#8E6A44", sx * (k + 0.5) * seg, cy * (k + 0.5) * seg, 0, 0.44 - k * 0.03, seg * 1.04, 0.44 - k * 0.03, 0, 0, -lean));
+    const top = new THREE.Vector3(sx * n * seg, cy * n * seg, 0);
+    g.add(sm(G.s8, "#5E9A3E", top.x, top.y, top.z, 0.7, 0.5, 0.7));
+    // each frond is one smooth arch: segments joined end to end, rising then drooping
+    const bends = [-0.45, 0.05, 0.55, 1.05], lens = [1.1, 1.0, 0.9, 0.75], wids = [0.42, 0.6, 0.5, 0.3];
+    for (let k = 0; k < 9; k++) {
+      const fr = new THREE.Group(), col = k % 2 ? "#4FAE45" : "#62C452"; let y = 0, z = 0;
+      bends.forEach((t, i) => { const L = lens[i]; fr.add(part(G.box, col, 0, y - Math.sin(t) * L / 2, z + Math.cos(t) * L / 2, wids[i], 0.07, L * 1.08, t)); y -= Math.sin(t) * L; z += Math.cos(t) * L; });
+      fr.position.copy(top); fr.rotation.y = k * 0.698 + dr(-0.1, 0.1); g.add(fr);
     }
-    [0, 2.1, 4.2].forEach(a => g.add(sm(G.s8, "#C9772F", x + Math.cos(a) * 0.35, y - 0.35, Math.sin(a) * 0.35, 0.45, 0.6, 0.45)));
+    [0, 2.1, 4.2].forEach(a => g.add(sm(G.s8, "#C9772F", top.x + Math.cos(a) * 0.4, top.y - 0.35, Math.sin(a) * 0.4, 0.42, 0.55, 0.42)));
     g.scale.setScalar(s); return g;
   }
   const bush = (s = 1) => { const g = new THREE.Group(); leafClump(g, 0, 0.55 * s, 0, 0.75 * s, GREENS); if (drand() < 0.4) [0, 2, 4].forEach(a => g.add(part(G.bud, dpick(["#FF6F91", "#FFFFFF", "#FFC93C"]), Math.cos(a) * 0.95 * s, 0.75 * s, Math.sin(a) * 0.95 * s, 0.3, 0.26, 0.3))); return g; };
