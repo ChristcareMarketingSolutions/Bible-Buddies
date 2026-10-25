@@ -194,6 +194,7 @@
     robe: new THREE.CylinderGeometry(0.3, 0.46, 1, 16),
     smile: new THREE.TorusGeometry(0.5, 0.18, 6, 12, Math.PI),
     leafy: new THREE.IcosahedronGeometry(0.5, 1),
+    trunk: new THREE.CylinderGeometry(0.36, 0.5, 1, 8),
     pyramid: new THREE.ConeGeometry(0.5, 1, 4),
     hull: new THREE.SphereGeometry(0.5, 16, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
     stone: new THREE.CylinderGeometry(1.45, 1.45, 0.45, 20),
@@ -335,15 +336,53 @@
   function fish(color) { const g = new THREE.Group(); g.add(sm(G.s12, color, 0, 0, 0, 0.18, 0.2, 0.5)); g.add(part(G.cone, color, 0, 0, -0.3, 0.2, 0.25, 0.08, Math.PI / 2)); return g; }
 
   /* ================= BUILDINGS & PROPS (flat-shaded, low poly) ================= */
+  /* Houses: bright cartoon colours, but built like Bible-time homes: a flat roof
+     with a low wall round the edge (Deuteronomy 22:8), wooden beams, shutters,
+     and a cloth awning over the door. Details use their own random numbers so
+     the rest of the map stays where it was. */
+  let dseed = 911;
+  function drand() { dseed |= 0; dseed = dseed + 0x6D2B79F5 | 0; let t = Math.imul(dseed ^ dseed >>> 15, 1 | dseed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+  const dr = (a, b) => a + drand() * (b - a);
+  const dpick = arr => arr[Math.floor(drand() * arr.length)];
+  const tint = (hex, l, s = 0) => "#" + new THREE.Color(hex).offsetHSL(0, s, l).getHexString();
+  const WALLS = ["#FFE7A8", "#FFC99A", "#FFB8A6", "#FFF1D6", "#F7D27E", "#FFD8B8", "#BFE3F2", "#C9EBC4", "#FFE0EC"];
+  const TRIMS = ["#4F8FD6", "#4FB08A", "#D45E46", "#8C6CC9", "#E9A033", "#3FA6B8"];
+  function windowAt(g, x, y, z, ry, trim) {   // a framed window with open wooden shutters, facing outwards
+    const w = new THREE.Group();
+    w.add(part(G.box, "#FFF4DE", 0, 0, 0, 0.95, 0.95, 0.08));
+    w.add(part(G.box, "#3B3142", 0, 0, 0.04, 0.66, 0.66, 0.06));
+    w.add(part(G.box, "#8A5A32", 0, 0.08, 0.06, 0.06, 0.66, 0.04));
+    w.add(part(G.box, "#E7D6B8", 0, -0.53, 0.1, 1.1, 0.12, 0.26));
+    [-1, 1].forEach(sd => w.add(part(G.box, trim, sd * 0.6, 0, 0.16, 0.34, 0.7, 0.06, 0, sd * 0.55, 0)));
+    w.position.set(x, y, z); w.rotation.y = ry; g.add(w);
+  }
   function house(w = 4, d = 4, h = 3, color = "#E4C595", o = {}) {
-    const g = new THREE.Group(), roof = o.roof || "#D4B07A";
-    g.add(part(G.box, color, 0, h / 2, 0, w, h, d));
-    g.add(part(G.box, roof, 0, h + 0.15, 0, w + 0.5, 0.3, d + 0.5));
-    g.add(part(G.box, color, 0, h + 0.45, -d / 2 - 0.05, w + 0.5, 0.4, 0.2));
-    g.add(part(G.box, "#6B4426", 0, 0.95, d / 2 + 0.02, 0.9, 1.9, 0.1));
-    [-1, 1].forEach(s => g.add(part(G.box, "#4A3A2E", s * (w / 4 + 0.35), h * 0.62, d / 2 + 0.02, 0.55, 0.55, 0.1)));
-    if (o.stairs) for (let k = 0; k < 5; k++) g.add(part(G.box, color, w / 2 + 0.45, 0.3 + k * 0.55, d / 2 - 0.5 - k * 0.55, 0.9, 0.6, 0.6));
-    if (rand() < 0.5) g.add(sm(G.s12, "#B5835A", w / 2 + 0.4, 0.45, d / 2 - 0.4, 0.6, 0.8, 0.6));
+    const g = new THREE.Group(), wall = tint(color, 0.06, 0.3), edge = o.roof || tint(wall, -0.16, 0.1), trim = dpick(TRIMS);
+    g.add(part(G.box, "#B9A68A", 0, 0.22, 0, w + 0.3, 0.44, d + 0.3));                     // stone footing
+    g.add(part(G.box, wall, 0, h / 2, 0, w, h, d));
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => g.add(part(G.box, edge, a * w / 2, h / 2, b * d / 2, 0.3, h, 0.3)));   // corner trim
+    g.add(part(G.box, edge, 0, h + 0.12, 0, w + 0.45, 0.24, d + 0.45));                   // flat roof
+    [[0, d / 2, w + 0.45, 0.22], [0, -d / 2, w + 0.45, 0.22], [w / 2, 0, 0.22, d + 0.45], [-w / 2, 0, 0.22, d + 0.45]]
+      .forEach(([x, z, sx, sz]) => { g.add(part(G.box, wall, x, h + 0.5, z, sx, 0.55, sz)); g.add(part(G.box, edge, x, h + 0.8, z, sx + 0.06, 0.1, sz + 0.06)); });   // roof wall
+    for (let x = -w / 2 + 0.6; x <= w / 2 - 0.5; x += 0.9) g.add(part(G.cyl, "#7A4E2C", x, h - 0.18, d / 2 + 0.15, 0.16, 0.36, 0.16, Math.PI / 2));   // beam ends
+    g.add(part(G.box, "#EADCC2", 0, 1.08, d / 2 + 0.03, 1.32, 2.24, 0.1));                 // door frame
+    g.add(part(G.box, "#7A4A2A", 0, 1.0, d / 2 + 0.07, 0.96, 1.96, 0.08));
+    [-0.24, 0.24].forEach(x => g.add(part(G.box, "#5E3820", x, 1.0, d / 2 + 0.12, 0.05, 1.9, 0.03)));
+    g.add(part(G.box, "#8A5A32", 0, 2.26, d / 2 + 0.1, 1.6, 0.18, 0.2));                   // lintel beam
+    if (w >= 3.6) [-1, 1].forEach(sd => windowAt(g, sd * (w / 4 + 0.4), h * 0.62, d / 2 + 0.02, 0, trim));
+    [-1, 1].forEach(sd => windowAt(g, sd * (w / 2 + 0.02), h * 0.62, 0, sd * Math.PI / 2, trim));
+    if (drand() < 0.65) {                                                                  // striped cloth awning
+      const aw = new THREE.Group(), cols = [trim, "#FFF6E6"];
+      for (let k = 0; k < 6; k++) aw.add(part(G.box, cols[k % 2], -0.95 + k * 0.38, 0, 0, 0.38, 0.06, 1.15));
+      aw.position.set(0, 2.55, d / 2 + 0.6); aw.rotation.x = 0.3; g.add(aw);
+      [-1, 1].forEach(sd => g.add(part(G.cyl, "#7A4E2C", sd * 1.08, 1.32, d / 2 + 1.12, 0.08, 2.4, 0.08)));
+    }
+    if (o.stairs) for (let k = 0; k < 5; k++) g.add(part(G.box, wall, w / 2 + 0.45, 0.3 + k * 0.55, d / 2 - 0.5 - k * 0.55, 0.9, 0.6, 0.6));
+    if (drand() < 0.3) {                                                                   // shade of branches on the roof
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => g.add(part(G.cyl, "#7A4E2C", a * 0.9, h + 0.95, b * 0.8, 0.1, 1.5, 0.1)));
+      g.add(part(G.box, "#8FBF5A", 0, h + 1.72, 0, 2.2, 0.14, 1.9)); g.add(part(G.box, "#7DAE4C", 0.2, h + 1.8, 0.1, 1.8, 0.1, 1.5));
+    }
+    if (drand() < 0.55) { g.add(sm(G.s12, "#C9774A", w / 2 + 0.45, 0.45, d / 2 - 0.4, 0.62, 0.82, 0.62)); g.add(sm(G.cylS, "#B5653C", w / 2 + 0.45, 0.88, d / 2 - 0.4, 0.34, 0.1, 0.34)); }
     return g;
   }
   function room(w = 9, d = 6.4, h = 3.6, color = "#E8CDA0") {   // a house with its front wall open, so we can see inside
@@ -416,11 +455,56 @@
   }
   const roundStone = () => part(G.stone, "#8F887E", 0, 1.45, 0, 1, 1, 1, Math.PI / 2, 0, 0);
 
-  /* trees: round and tall ones only */
-  function olive(s = 1) { const g = new THREE.Group(); g.add(part(G.cyl, "#7B6046", 0, 0.9, 0, 0.45, 1.8, 0.45, 0, 0, 0.12)); const greens = ["#7FA35A", "#8DB066", "#6E9450"]; for (let i = 0; i < 4; i++) g.add(part(G.blob, greens[i % 3], rr(-1, 1), rr(2.3, 3.1), rr(-1, 1), rr(1.8, 2.6), rr(1.4, 2), rr(1.8, 2.6), rand(), rand(), 0)); g.scale.setScalar(s); return g; }
-  function cypress(s = 1) { const g = new THREE.Group(); g.add(part(G.cyl, "#6B4A2E", 0, 0.5, 0, 0.35, 1, 0.35)); g.add(part(G.cone, "#2F8A4A", 0, 3.6, 0, 1.8, 6.4, 1.8)); g.scale.setScalar(s); return g; }
-  function roundTree(s = 1) { const g = new THREE.Group(); g.add(part(G.cyl, "#7A5532", 0, 1.3, 0, 0.5, 2.6, 0.5)); const greens = ["#5DAA4C", "#6CB956", "#4F9A45"]; [[0, 3.6, 0, 3.4], [-1, 3.0, 0.5, 2.4], [1.1, 3.1, -0.3, 2.5]].forEach(([x, y, z, r], i) => g.add(part(G.leafy, greens[i], x, y, z, r, r * 0.9, r))); g.scale.setScalar(s); return g; }
-  const bush = (s = 1) => part(G.ball, pick(["#5DAA4C", "#6CB956", "#4F9A45"]), 0, 0.5 * s, 0, 1.6 * s, 1.1 * s, 1.6 * s);
+  /* trees: puffy cartoon leaves (a soft round core covered in leaf "scales") */
+  const _up = new THREE.Vector3(0, 1, 0), _out = new THREE.Vector3();
+  function leafClump(g, x, y, z, r, cols) {
+    g.add(sm(G.leafy, cols[0], x, y, z, r * 1.75, r * 1.5, r * 1.75));
+    const n = Math.round(7 + r * 5);
+    for (let i = 0; i < n; i++) {
+      const yy = 1 - (i + 0.5) / n * 1.45, rad = Math.sqrt(Math.max(0, 1 - yy * yy)), a = i * 2.4 + dr(-0.3, 0.3);
+      _out.set(Math.cos(a) * rad, yy, Math.sin(a) * rad).normalize();
+      const leaf = part(G.bud, cols[1 + (i % (cols.length - 1))], x + _out.x * r * 0.86, y + _out.y * r * 0.74, z + _out.z * r * 0.86, r * dr(0.62, 0.8), r * 0.26, r * dr(0.48, 0.6));
+      leaf.quaternion.setFromUnitVectors(_up, _out); leaf.rotateY(dr(0, 3)); g.add(leaf);
+    }
+  }
+  const GREENS = ["#4FAE45", "#62C452", "#7ED35C", "#45A23E"], OLIVES = ["#86A65E", "#9DBC74", "#B3CB8C", "#7D9C57"];
+  // canopy: one clump on top of the trunk and three evenly round it, so the tree looks the same from every side
+  function canopy(g, y, r, cols, spread = 1, low = 0.55) {
+    leafClump(g, 0, y, 0, r, cols);
+    for (let k = 0; k < 3; k++) { const a = k * 2.094 + 0.5; leafClump(g, Math.cos(a) * r * spread, y - r * low, Math.sin(a) * r * spread, r * 0.72, cols); }
+  }
+  function olive(s = 1) {
+    const g = new THREE.Group();
+    g.add(part(G.trunk, "#7B6046", 0, 1.1, 0, 0.6, 2.2, 0.6));
+    canopy(g, 2.9, 1.15, OLIVES, 0.95, 0.35);
+    g.scale.setScalar(s); return g;
+  }
+  function cypress(s = 1) {
+    const g = new THREE.Group(); g.add(part(G.trunk, "#6B4A2E", 0, 0.5, 0, 0.4, 1, 0.4));
+    [[2.4, 2.2, 3.4], [4.2, 1.75, 3], [5.8, 1.3, 2.6], [7.1, 0.8, 1.8]].forEach(([y, r, hh], i) => g.add(part(G.cone, i % 2 ? "#36A356" : "#2E9149", 0, y, 0, r, hh, r, 0, i * 0.4, 0)));
+    g.scale.setScalar(s); return g;
+  }
+  function roundTree(s = 1) {
+    const g = new THREE.Group(); g.add(part(G.trunk, "#7A5532", 0, 1.5, 0, 0.6, 3, 0.6));
+    canopy(g, 4.1, 1.6, GREENS, 0.8, 0.5);
+    g.scale.setScalar(s); return g;
+  }
+  function palm(s = 1) {   // date palm (John 12:13)
+    const g = new THREE.Group(), lean = dr(-0.12, 0.12), seg = 1.05, n = 6, sx = Math.sin(lean), cy = Math.cos(lean);
+    for (let k = 0; k < n; k++) g.add(part(G.trunk, k % 2 ? "#A07A50" : "#8E6A44", sx * (k + 0.5) * seg, cy * (k + 0.5) * seg, 0, 0.44 - k * 0.03, seg * 1.04, 0.44 - k * 0.03, 0, 0, -lean));
+    const top = new THREE.Vector3(sx * n * seg, cy * n * seg, 0);
+    g.add(sm(G.s8, "#5E9A3E", top.x, top.y, top.z, 0.7, 0.5, 0.7));
+    // each frond is one smooth arch: segments joined end to end, rising then drooping
+    const bends = [-0.45, 0.05, 0.55, 1.05], lens = [1.1, 1.0, 0.9, 0.75], wids = [0.42, 0.6, 0.5, 0.3];
+    for (let k = 0; k < 9; k++) {
+      const fr = new THREE.Group(), col = k % 2 ? "#4FAE45" : "#62C452"; let y = 0, z = 0;
+      bends.forEach((t, i) => { const L = lens[i]; fr.add(part(G.box, col, 0, y - Math.sin(t) * L / 2, z + Math.cos(t) * L / 2, wids[i], 0.07, L * 1.08, t)); y -= Math.sin(t) * L; z += Math.cos(t) * L; });
+      fr.position.copy(top); fr.rotation.y = k * 0.698 + dr(-0.1, 0.1); g.add(fr);
+    }
+    [0, 2.1, 4.2].forEach(a => g.add(sm(G.s8, "#C9772F", top.x + Math.cos(a) * 0.4, top.y - 0.35, Math.sin(a) * 0.4, 0.42, 0.55, 0.42)));
+    g.scale.setScalar(s); return g;
+  }
+  const bush = (s = 1) => { const g = new THREE.Group(); leafClump(g, 0, 0.55 * s, 0, 0.75 * s, GREENS); if (drand() < 0.4) [0, 2, 4].forEach(a => g.add(part(G.bud, dpick(["#FF6F91", "#FFFFFF", "#FFC93C"]), Math.cos(a) * 0.95 * s, 0.75 * s, Math.sin(a) * 0.95 * s, 0.3, 0.26, 0.3))); return g; };
   const rockShape = (s = 1, c = "#A49C90") => part(G.blob, c, 0, 0.4 * s, 0, 1.6 * s, 1.1 * s, 1.4 * s, rand(), rand(), 0);
   const flower = () => part(G.bud, pick(["#FF6F91", "#FFC93C", "#FFFFFF", "#B57CFF", "#FF8A5B"]), 0, 0.25, 0, 0.34, 0.3, 0.34);
 
@@ -602,7 +686,7 @@
       if (nearRoad(x, z, 5.5) || nearScene(x, z) || inLake(x, z) || onBump(x, z)) continue;
       const k = rand();
       if (inDesert(x, z)) { if (k < 0.5) put(rockShape(rr(0.6, 1.6), "#C2A982"), x, z); else if (k < 0.62) put(bush(rr(0.5, 0.8)), x, z); continue; }
-      if (k < 0.32) put(olive(rr(0.8, 1.25)), x, z); else if (k < 0.5) put(roundTree(rr(0.8, 1.2)), x, z);
+      if (k < 0.28) put(olive(rr(0.8, 1.25)), x, z); else if (k < 0.44) put(roundTree(rr(0.8, 1.2)), x, z); else if (k < 0.5) put(palm(rr(0.85, 1.15)), x, z);
       else if (k < 0.66) put(cypress(rr(0.8, 1.25)), x, z); else if (k < 0.86) put(bush(rr(0.7, 1.3)), x, z); else put(rockShape(rr(0.5, 1.2)), x, z);
     }
     for (let i = 0; i < ROAD_LEN / 2.5; i++) {
@@ -643,7 +727,7 @@
           S.faceP(o, x, z, tx, tz);
         }
       },
-      houses(list, color) { list.forEach(([lx, lz, w, d, h, rot]) => { const wp = W(f, lx, lz); if (!nearRoad(wp.x, wp.z, Math.max(w, d) * 0.7 + 2)) S.bake(house(w, d, h, color || pick(["#E4C595", "#DDB98A", "#E8CDA0"])), lx, lz, rot || 0); }); },
+      houses(list, color) { list.forEach(([lx, lz, w, d, h, rot]) => { const wp = W(f, lx, lz); if (!nearRoad(wp.x, wp.z, Math.max(w, d) * 0.7 + 2)) S.bake(house(w, d, h, color || pick(WALLS)), lx, lz, rot || 0); }); },
       trees(list, kind = olive) { list.forEach(([lx, lz, s]) => { const wp = W(f, lx, lz); if (!nearRoad(wp.x, wp.z, 4)) S.bake(kind(s || 1), lx, lz, rand() * 6); }); },
       sign(text, lx = -7.5, lz = 8) { signpost(S, text, lx, lz); },
       glow(lx, ly, lz, size = 4, tex = GLOW_GOLD, always = false) {
@@ -967,6 +1051,7 @@
       S.crowd(9, 0, -6, 3.2, 4.5, 0, -6, { seed: 13, a0: -2.6, a1: -0.6, o: { holds: "branch", arms: "oneUp" } });
       S.crowd(9, 0, -6, 3.2, 4.5, 0, -6, { seed: 21, a0: 0.6, a1: 2.6, o: { holds: "branch", arms: "oneUp" } });
       S.trees([[-14, -12, 1], [14, -12, 1.1]], roundTree);
+      S.trees([[-19, -8, 1.1], [19, -9, 1], [-11, -16, 0.95], [11, -16, 1.05]], palm);   // palm branches came from these (John 12:13)
     },
     "temple-teaching"(S) {
       S.sign("Jerusalem Temple");
